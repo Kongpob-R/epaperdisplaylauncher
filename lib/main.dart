@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fullscreen/fullscreen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -59,6 +60,17 @@ class _MyHomePageState extends State<MyHomePage> {
       // called again, and so nothing would appear to happen.
       _counter++;
     });
+  }
+
+  void enterFullScreen() async {
+    await FullScreen.enterFullScreen(FullScreenMode.EMERSIVE_STICKY);
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    enterFullScreen();
+    super.initState();
   }
 
   @override
