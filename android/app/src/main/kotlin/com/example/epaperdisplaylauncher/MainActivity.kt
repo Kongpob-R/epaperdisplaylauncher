@@ -1,4 +1,4 @@
-package com.example.epaperdisplaylauncher
+package com.happysoft.epaperdisplaylauncher
 
 import io.flutter.embedding.android.FlutterActivity
 
