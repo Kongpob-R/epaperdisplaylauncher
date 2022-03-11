@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:fullscreen/fullscreen.dart';
+import 'package:flutter/services.dart';
+import 'custom_icon.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,6 +15,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        hoverColor: Colors.transparent,
         // This is the theme of your application.
         //
         // Try running your application with "flutter run". You'll see the
@@ -50,6 +54,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  int _selectedIndex = 0;
 
   void _incrementCounter() {
     setState(() {
@@ -62,15 +67,24 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void enterFullScreen() async {
-    await FullScreen.enterFullScreen(FullScreenMode.EMERSIVE_STICKY);
+  void _onItemTap(index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   @override
   void initState() {
-    // TODO: implement initState
-    enterFullScreen();
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+        overlays: [SystemUiOverlay.top]);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   }
 
   @override
@@ -114,6 +128,13 @@ class _MyHomePageState extends State<MyHomePage> {
               '$_counter',
               style: Theme.of(context).textTheme.headline4,
             ),
+            const Text(
+              'You Are On Indexes:',
+            ),
+            Text(
+              '$_selectedIndex',
+              style: Theme.of(context).textTheme.headline4,
+            ),
           ],
         ),
       ),
@@ -122,6 +143,175 @@ class _MyHomePageState extends State<MyHomePage> {
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
+
+      bottomNavigationBar: Container(
+        height: 60,
+        padding: EdgeInsets.zero,
+        decoration: const BoxDecoration(
+            border: Border(top: BorderSide(width: 1, color: Colors.black))),
+        child: Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: <Widget>[
+            customIcon(
+              0,
+              _selectedIndex,
+              const Icon(
+                Icons.home,
+                color: Colors.black,
+              ),
+              'Home',
+              () {
+                setState(() {
+                  _selectedIndex = 0;
+                });
+              },
+            ),
+            customIcon(
+              1,
+              _selectedIndex,
+              const Icon(
+                Icons.collections_bookmark,
+                color: Colors.black,
+              ),
+              'Library',
+              () {
+                setState(() {
+                  _selectedIndex = 1;
+                });
+              },
+            ),
+            customIcon(
+              2,
+              _selectedIndex,
+              const Icon(
+                Icons.cloud_download,
+                color: Colors.black,
+              ),
+              'Cloud Download',
+              () {
+                setState(() {
+                  _selectedIndex = 2;
+                });
+              },
+            ),
+            customIcon(
+              3,
+              _selectedIndex,
+              const Icon(
+                Icons.settings,
+                color: Colors.black,
+              ),
+              'Setting',
+              () {
+                setState(() {
+                  _selectedIndex = 3;
+                });
+              },
+            )
+          ],
+          // children: [
+          //   IconButton(
+          //     enableFeedback: false,
+          //     onPressed: () {
+          //       setState(() {
+          //         _selectedIndex = 0;
+          //       });
+          //     },
+          //     icon: _selectedIndex == 0
+          //         ? const Icon(
+          //             Icons.home_filled,
+          //             color: Colors.white,
+          //             size: 35,
+          //           )
+          //         : const Icon(
+          //             Icons.home_outlined,
+          //             color: Colors.white,
+          //             size: 35,
+          //           ),
+          //   ),
+          //   IconButton(
+          //     enableFeedback: false,
+          //     onPressed: () {
+          //       setState(() {
+          //         _selectedIndex = 1;
+          //       });
+          //     },
+          //     icon: _selectedIndex == 1
+          //         ? const Icon(
+          //             Icons.work_rounded,
+          //             color: Colors.white,
+          //             size: 35,
+          //           )
+          //         : const Icon(
+          //             Icons.work_outline_outlined,
+          //             color: Colors.white,
+          //             size: 35,
+          //           ),
+          //   ),
+          //   IconButton(
+          //     enableFeedback: false,
+          //     onPressed: () {
+          //       setState(() {
+          //         _selectedIndex = 2;
+          //       });
+          //     },
+          //     icon: _selectedIndex == 2
+          //         ? const Icon(
+          //             Icons.widgets_rounded,
+          //             color: Colors.white,
+          //             size: 35,
+          //           )
+          //         : const Icon(
+          //             Icons.widgets_outlined,
+          //             color: Colors.white,
+          //             size: 35,
+          //           ),
+          //   ),
+          //   IconButton(
+          //     enableFeedback: false,
+          //     onPressed: () {
+          //       setState(() {
+          //         _selectedIndex = 3;
+          //       });
+          //     },
+          //     icon: _selectedIndex == 3
+          //         ? const Icon(
+          //             Icons.person,
+          //             color: Colors.white,
+          //             size: 35,
+          //           )
+          //         : const Icon(
+          //             Icons.person_outline,
+          //             color: Colors.white,
+          //             size: 35,
+          //           ),
+          //   ),
+          // ],
+        ),
+      ),
+      // bottomNavigationBar: BottomNavigationBar(
+      //   selectedFontSize: 15,
+      //   unselectedFontSize: 15,
+      //   selectedItemColor: Colors.black,
+      //   unselectedItemColor: Colors.black,
+      //   items: const <BottomNavigationBarItem>[
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.home),
+      //       label: 'Home',
+      //     ),
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.business),
+      //       label: 'Business',
+      //     ),
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.school),
+      //       label: 'School',
+      //     ),
+      //   ],
+      //   currentIndex: _selectedIndex,
+      //   onTap: _onItemTapped,
+      // ),
     );
   }
 }
