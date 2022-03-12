@@ -1,19 +1,29 @@
 import 'package:flutter/material.dart';
 
-GestureDetector customIcon(index, _selectedIndex, icon, lable, onPressed) {
-  return GestureDetector(
-    onTap: onPressed,
+Expanded customIcon(index, _selectedIndex, icon, lable, onPressed) {
+  return Expanded(
     child: Container(
-      padding: EdgeInsets.zero,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         border: Border(
-            top: BorderSide(
-          width: 4,
-          color: _selectedIndex == index ? Colors.black : Colors.white,
-        )),
+          left: BorderSide(width: 1),
+        ),
       ),
-      child: Column(
-        children: <Widget>[icon, Text(lable)],
+      child: GestureDetector(
+        onTap: onPressed,
+        child: Container(
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            border: Border(
+              top: BorderSide(
+                width: 4,
+                color: _selectedIndex == index ? Colors.black : Colors.white,
+              ),
+            ),
+          ),
+          child: Column(
+            children: <Widget>[icon, Text(lable)],
+          ),
+        ),
       ),
     ),
   );
