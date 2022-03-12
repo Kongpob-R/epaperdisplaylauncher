@@ -67,12 +67,6 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void _onItemTap(index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
   @override
   void initState() {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
@@ -101,6 +95,7 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
+
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
@@ -138,6 +133,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
+
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
         tooltip: 'Increment',
@@ -210,108 +206,8 @@ class _MyHomePageState extends State<MyHomePage> {
               },
             )
           ],
-          // children: [
-          //   IconButton(
-          //     enableFeedback: false,
-          //     onPressed: () {
-          //       setState(() {
-          //         _selectedIndex = 0;
-          //       });
-          //     },
-          //     icon: _selectedIndex == 0
-          //         ? const Icon(
-          //             Icons.home_filled,
-          //             color: Colors.white,
-          //             size: 35,
-          //           )
-          //         : const Icon(
-          //             Icons.home_outlined,
-          //             color: Colors.white,
-          //             size: 35,
-          //           ),
-          //   ),
-          //   IconButton(
-          //     enableFeedback: false,
-          //     onPressed: () {
-          //       setState(() {
-          //         _selectedIndex = 1;
-          //       });
-          //     },
-          //     icon: _selectedIndex == 1
-          //         ? const Icon(
-          //             Icons.work_rounded,
-          //             color: Colors.white,
-          //             size: 35,
-          //           )
-          //         : const Icon(
-          //             Icons.work_outline_outlined,
-          //             color: Colors.white,
-          //             size: 35,
-          //           ),
-          //   ),
-          //   IconButton(
-          //     enableFeedback: false,
-          //     onPressed: () {
-          //       setState(() {
-          //         _selectedIndex = 2;
-          //       });
-          //     },
-          //     icon: _selectedIndex == 2
-          //         ? const Icon(
-          //             Icons.widgets_rounded,
-          //             color: Colors.white,
-          //             size: 35,
-          //           )
-          //         : const Icon(
-          //             Icons.widgets_outlined,
-          //             color: Colors.white,
-          //             size: 35,
-          //           ),
-          //   ),
-          //   IconButton(
-          //     enableFeedback: false,
-          //     onPressed: () {
-          //       setState(() {
-          //         _selectedIndex = 3;
-          //       });
-          //     },
-          //     icon: _selectedIndex == 3
-          //         ? const Icon(
-          //             Icons.person,
-          //             color: Colors.white,
-          //             size: 35,
-          //           )
-          //         : const Icon(
-          //             Icons.person_outline,
-          //             color: Colors.white,
-          //             size: 35,
-          //           ),
-          //   ),
-          // ],
         ),
       ),
-      // bottomNavigationBar: BottomNavigationBar(
-      //   selectedFontSize: 15,
-      //   unselectedFontSize: 15,
-      //   selectedItemColor: Colors.black,
-      //   unselectedItemColor: Colors.black,
-      //   items: const <BottomNavigationBarItem>[
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.home),
-      //       label: 'Home',
-      //     ),
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.business),
-      //       label: 'Business',
-      //     ),
-      //     BottomNavigationBarItem(
-      //       icon: Icon(Icons.school),
-      //       label: 'School',
-      //     ),
-      //   ],
-      //   currentIndex: _selectedIndex,
-      //   onTap: _onItemTapped,
-      // ),
     );
   }
 }
