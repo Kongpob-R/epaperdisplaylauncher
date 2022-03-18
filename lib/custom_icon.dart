@@ -21,7 +21,13 @@ Expanded customIcon(index, _selectedIndex, icon, lable, onPressed) {
             ),
           ),
           child: Column(
-            children: <Widget>[icon, Text(lable)],
+            children: <Widget>[
+              icon,
+              Text(
+                lable,
+                textScaleFactor: 0.8,
+              )
+            ],
           ),
         ),
       ),
