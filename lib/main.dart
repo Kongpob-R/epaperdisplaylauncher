@@ -1,3 +1,4 @@
+import 'package:epaperdisplaylauncher/cloud_download_page.dart';
 import 'package:epaperdisplaylauncher/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -84,7 +85,7 @@ class _MyHomePageState extends State<MyHomePage> {
               case 1:
                 return const HomePage();
               case 2:
-                return const HomePage();
+                return const CloudDownloadPage();
               case 3:
                 return const HomePage();
               default:
