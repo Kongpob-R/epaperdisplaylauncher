@@ -23,14 +23,17 @@ class _LibraryPageState extends State<LibraryPage> {
     //   'Cartoons on the War1248',
     // );
     filePath = path.join(
-      'storage/emulated/0',
+      '/storage/emulated/0',
       'Books',
       'Cartoons on the War1248',
     );
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => EpubViewer(filePath: filePath!),
+      PageRouteBuilder(
+        pageBuilder: (context, animation1, animation2) =>
+            EpubViewer(filePath: filePath!),
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
       ),
     );
   }

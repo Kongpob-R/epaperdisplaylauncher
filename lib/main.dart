@@ -56,7 +56,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
+  late PageController _myPage;
 
   @override
   void initState() {
@@ -65,6 +66,10 @@ class _MyHomePageState extends State<MyHomePage> {
       overlays: [SystemUiOverlay.top],
     );
     super.initState();
+    _myPage = PageController(
+      initialPage: 0,
+    );
+    _selectedIndex = 0;
   }
 
   @override
@@ -77,23 +82,15 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Builder(
-          builder: (context) {
-            switch (_selectedIndex) {
-              case 0:
-                return const HomePage();
-              case 1:
-                return const LibraryPage();
-              case 2:
-                return const CloudDownloadPage();
-              case 3:
-                return const HomePage();
-              default:
-                return const HomePage();
-            }
-          },
-        ),
+      body: PageView(
+        physics: const NeverScrollableScrollPhysics(),
+        controller: _myPage,
+        children: const <Widget>[
+          Center(child: HomePage()),
+          Center(child: LibraryPage()),
+          Center(child: CloudDownloadPage()),
+          Center(child: HomePage()),
+        ],
       ),
       bottomNavigationBar: Container(
         height: 60,
@@ -113,6 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               'Home',
               () {
+                _myPage.jumpToPage(0);
                 setState(() {
                   _selectedIndex = 0;
                 });
@@ -127,6 +125,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               'Library',
               () {
+                _myPage.jumpToPage(1);
                 setState(() {
                   _selectedIndex = 1;
                 });
@@ -141,6 +140,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               'Cloud Download',
               () {
+                _myPage.jumpToPage(2);
                 setState(() {
                   _selectedIndex = 2;
                 });
@@ -155,6 +155,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               'Setting',
               () {
+                _myPage.jumpToPage(3);
                 setState(() {
                   _selectedIndex = 3;
                 });
