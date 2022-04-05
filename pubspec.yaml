@@ -35,6 +35,7 @@ dependencies:
     cupertino_icons: ^1.0.2
     device_apps: ^2.1.1
     qr_flutter: ^4.0.0
+    epub_view: ^3.0.0
 
 dev_dependencies:
     flutter_test:

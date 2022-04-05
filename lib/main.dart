@@ -1,5 +1,6 @@
 import 'package:epaperdisplaylauncher/cloud_download_page.dart';
 import 'package:epaperdisplaylauncher/home_page.dart';
+import 'package:epaperdisplaylauncher/library_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'custom_icon.dart';
@@ -83,7 +84,7 @@ class _MyHomePageState extends State<MyHomePage> {
               case 0:
                 return const HomePage();
               case 1:
-                return const HomePage();
+                return const LibraryPage();
               case 2:
                 return const CloudDownloadPage();
               case 3:

@@ -15,7 +15,7 @@ class _HomePageState extends State<HomePage> {
     apps = await DeviceApps.getInstalledApplications(
       includeAppIcons: true,
       includeSystemApps: true,
-      onlyAppsWithLaunchIntent: true,
+      onlyAppsWithLaunchIntent: false,
     );
   }
 
@@ -31,9 +31,17 @@ class _HomePageState extends State<HomePage> {
       padding: const EdgeInsets.all(8),
       itemCount: apps.length,
       itemBuilder: (BuildContext context, int index) {
-        return SizedBox(
-          height: 50,
-          child: Center(child: Text('Entry ${apps[index].appName}')),
+        return GestureDetector(
+          onTap: () => DeviceApps.openApp(apps[index].packageName),
+          child: SizedBox(
+            height: 50,
+            child: Column(
+              children: <Widget>[
+                Center(child: Text('Entry ${apps[index].appName}')),
+                Center(child: Text('packageName ${apps[index].packageName}')),
+              ],
+            ),
+          ),
         );
       },
     );
