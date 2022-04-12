@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:epub_view/epub_view.dart';
 import 'dart:io';
@@ -53,11 +55,13 @@ class _EpubViewerState extends State<EpubViewer> {
         child: EpubViewTableOfContents(controller: _epubReaderController),
       ),
       body: EpubView(
-        builders: EpubViewBuilders<DefaultBuilderOptions>(
-          options: const DefaultBuilderOptions(),
-          chapterDividerBuilder: (_) => const Divider(),
-        ),
         controller: _epubReaderController,
+        onDocumentError: (error) {
+          log(error.toString());
+        },
+        onDocumentLoaded: (document) {
+          log("ready");
+        },
       ),
     );
   }

@@ -25,7 +25,7 @@ class _LibraryPageState extends State<LibraryPage> {
     filePath = path.join(
       '/storage/emulated/0',
       'Books',
-      'Cartoons on the War1248',
+      'Cartoons on the War1248.epub',
     );
     Navigator.push(
       context,

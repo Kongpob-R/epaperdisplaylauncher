@@ -81,9 +81,9 @@ packages:
   epub_view:
     dependency: "direct main"
     description:
-      name: epub_view
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../packages.flutter/packages/epub_view"
+      relative: true
+    source: path
     version: "3.0.0"
   epubx:
     dependency: transitive
