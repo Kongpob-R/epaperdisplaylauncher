@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:epub_view/epub_view.dart';
 import 'dart:io';
@@ -44,6 +43,20 @@ class _EpubViewerState extends State<EpubViewer> {
           ),
         ),
         actions: <Widget>[
+          IconButton(
+              icon: const Icon(Icons.turn_left),
+              color: Colors.white,
+              onPressed: () {
+                _epubReaderController.jumpToPreviousPage();
+                log('jump to previous page');
+              }),
+          IconButton(
+              icon: const Icon(Icons.turn_right),
+              color: Colors.white,
+              onPressed: () {
+                _epubReaderController.jumpToNextPage();
+                log('jump to next page');
+              }),
           IconButton(
             icon: const Icon(Icons.save_alt),
             color: Colors.white,
