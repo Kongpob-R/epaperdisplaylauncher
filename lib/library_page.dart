@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:epaperdisplaylauncher/epub_viewer.dart';
 import 'package:epub_view/epub_view.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -41,31 +43,44 @@ class _LibraryPageState extends State<LibraryPage> {
     );
   }
 
-  void _listBooks(List<String> subDirectories) {
+  void _listBooks(List<String> subDirectories) async {
+    List bookPaths = [];
+    List bookRefs = [];
     for (var subDirectory in subDirectories) {
       final targetPath = io.Directory(path.join(
         rootDirectory,
         subDirectory,
       ));
       if (targetPath.existsSync()) {
-        files += targetPath.listSync(
-          recursive: true,
+        bookPaths += targetPath.listSync(
+          recursive: false,
           followLinks: false,
         );
       }
     }
+    bookPaths = bookPaths
+        .where((element) =>
+            element.path.contains('.epub') || element.path.contains('.pdf'))
+        .toList();
+    for (var e in bookPaths) {
+      final EpubBookRef epubBookRef = await EpubReader.openBook(
+        io.File(e.path).readAsBytes(),
+      );
+      bookRefs.add({
+        'title': epubBookRef.Title.toString(),
+        'author': epubBookRef.Author.toString(),
+        'path': e.path.toString(),
+      });
+    }
     setState(() {
-      files = files
-          .where((element) =>
-              element.path.contains('.epub') || element.path.contains('.pdf'))
-          .toList();
+      files = bookRefs;
     });
   }
 
   @override
   void initState() {
     super.initState();
-    _listBooks(['Books', 'Books/MoonReader']);
+    _listBooks(['Books']);
   }
 
   @override
@@ -77,6 +92,7 @@ class _LibraryPageState extends State<LibraryPage> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: const EdgeInsets.fromLTRB(0, 30, 0, 0),
       child: Column(
         children: <Widget>[
           Expanded(
@@ -88,7 +104,7 @@ class _LibraryPageState extends State<LibraryPage> {
               itemBuilder: (BuildContext context, int index) {
                 return GestureDetector(
                   onTap: () {
-                    launchReader(files[index].path);
+                    launchReader(files[index]['path']);
                   },
                   child: Container(
                     padding: const EdgeInsets.all(10),
@@ -97,7 +113,7 @@ class _LibraryPageState extends State<LibraryPage> {
                     ),
                     child: Column(
                       children: <Widget>[
-                        Text(files[index].path),
+                        Text(files[index]['title']),
                       ],
                     ),
                   ),
