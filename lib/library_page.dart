@@ -1,9 +1,13 @@
 import 'dart:developer';
-
+import 'dart:ffi';
+import 'dart:typed_data';
 import 'package:epaperdisplaylauncher/epub_viewer.dart';
 import 'package:epub_view/epub_view.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/src/widgets/image.dart' as widgetImage;
+import 'package:epubx/epubx.dart' as epub;
+import 'package:image/image.dart' as image;
 import 'package:path/path.dart' as path;
 import 'dart:io' as io;
 // import 'package:path_provider/path_provider.dart';
@@ -16,6 +20,7 @@ class LibraryPage extends StatefulWidget {
 }
 
 class _LibraryPageState extends State<LibraryPage> {
+  late bool isLoading;
   late String filePath;
   String rootDirectory = '/storage/emulated/0';
   List files = [];
@@ -43,7 +48,10 @@ class _LibraryPageState extends State<LibraryPage> {
     );
   }
 
-  void _listBooks(List<String> subDirectories) async {
+  Future _listBooks(List<String> subDirectories) async {
+    setState(() {
+      isLoading = true;
+    });
     List bookPaths = [];
     List bookRefs = [];
     for (var subDirectory in subDirectories) {
@@ -67,13 +75,13 @@ class _LibraryPageState extends State<LibraryPage> {
         io.File(e.path).readAsBytes(),
       );
       bookRefs.add({
-        'title': epubBookRef.Title.toString(),
-        'author': epubBookRef.Author.toString(),
+        'ref': epubBookRef,
         'path': e.path.toString(),
       });
     }
     setState(() {
       files = bookRefs;
+      isLoading = false;
     });
   }
 
@@ -87,6 +95,74 @@ class _LibraryPageState extends State<LibraryPage> {
   void dispose() {
     super.dispose();
     files = [];
+  }
+
+  Widget buildEpubWidget(epub.EpubBookRef book) {
+    var cover = book.readCover();
+    return Container(
+        padding: const EdgeInsets.all(8),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  const Text(
+                    "Title",
+                  ),
+                  Text(
+                    book.Title!,
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(top: 15.0),
+                  ),
+                  const Text(
+                    "Author",
+                  ),
+                  Text(
+                    book.Author!,
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(top: 15.0),
+                  ),
+                ],
+              ),
+            ),
+            FutureBuilder<epub.Image?>(
+              future: cover,
+              builder: (context, AsyncSnapshot<epub.Image?> snapshot) {
+                if (snapshot.hasData) {
+                  return widgetImage.Image.memory(
+                    Uint8List.fromList(
+                      image.encodePng(
+                        snapshot.data!,
+                      ),
+                    ),
+                    width: 120,
+                    height: 120,
+                  );
+                } else if (snapshot.hasError) {
+                  return Text("${snapshot.error}");
+                }
+                return Container(
+                  width: 100,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    border: Border.all(width: 1),
+                  ),
+                  child: Padding(
+                      padding: const EdgeInsets.all(3),
+                      child: Center(
+                        child: Text(
+                          book.Title!,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      )),
+                );
+              },
+            ),
+          ],
+        ));
   }
 
   @override
@@ -106,17 +182,17 @@ class _LibraryPageState extends State<LibraryPage> {
                   onTap: () {
                     launchReader(files[index]['path']);
                   },
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: const BoxDecoration(
-                      border: Border(bottom: BorderSide(width: 1)),
-                    ),
-                    child: Column(
-                      children: <Widget>[
-                        Text(files[index]['title']),
-                      ],
-                    ),
-                  ),
+                  child: isLoading
+                      ? Container()
+                      : Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: const BoxDecoration(
+                            border: Border(bottom: BorderSide(width: 1)),
+                          ),
+                          child: buildEpubWidget(
+                            files[index]['ref'],
+                          ),
+                        ),
                 );
               },
             ),
