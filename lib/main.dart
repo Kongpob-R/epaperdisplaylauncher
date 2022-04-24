@@ -1,6 +1,7 @@
 import 'package:epaperdisplaylauncher/cloud_download_page.dart';
 import 'package:epaperdisplaylauncher/home_page.dart';
 import 'package:epaperdisplaylauncher/library_page.dart';
+import 'package:epaperdisplaylauncher/setting_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'custom_icon.dart';
@@ -89,7 +90,7 @@ class _MyHomePageState extends State<MyHomePage> {
           Center(child: HomePage()),
           Center(child: LibraryPage()),
           Center(child: CloudDownloadPage()),
-          Center(child: HomePage()),
+          Center(child: SettingPage()),
         ],
       ),
       bottomNavigationBar: Container(
