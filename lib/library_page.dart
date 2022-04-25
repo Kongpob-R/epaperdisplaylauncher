@@ -1,8 +1,5 @@
 import 'dart:developer';
-import 'dart:ffi';
 import 'dart:typed_data';
-import 'package:epaperdisplaylauncher/epub_viewer.dart';
-import 'package:epub_view/epub_view.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/image.dart' as widgetImage;
@@ -10,6 +7,8 @@ import 'package:epubx/epubx.dart' as epub;
 import 'package:image/image.dart' as image;
 import 'package:path/path.dart' as path;
 import 'dart:io' as io;
+import 'package:android_intent_plus/android_intent.dart';
+import 'package:android_intent_plus/flag.dart';
 // import 'package:path_provider/path_provider.dart';
 
 class LibraryPage extends StatefulWidget {
@@ -37,15 +36,21 @@ class _LibraryPageState extends State<LibraryPage> {
     //   'Books',
     //   'Cartoons on the War1248',
     // );
-    Navigator.push(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation1, animation2) =>
-            EpubViewer(filePath: filePath),
-        transitionDuration: Duration.zero,
-        reverseTransitionDuration: Duration.zero,
-      ),
+    // Navigator.push(
+    //   context,
+    //   PageRouteBuilder(
+    //     pageBuilder: (context, animation1, animation2) =>
+    //         EpubViewer(filePath: filePath),
+    //     transitionDuration: Duration.zero,
+    //     reverseTransitionDuration: Duration.zero,
+    //   ),
+    // );
+    AndroidIntent intent = AndroidIntent(
+      action: 'action_view',
+      flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
+      data: Uri.file(filePath, windows: false).toString(),
     );
+    await intent.launch();
   }
 
   Future _listBooks(List<String> subDirectories) async {
@@ -71,7 +76,7 @@ class _LibraryPageState extends State<LibraryPage> {
             element.path.contains('.epub') || element.path.contains('.pdf'))
         .toList();
     for (var e in bookPaths) {
-      final EpubBookRef epubBookRef = await EpubReader.openBook(
+      final epub.EpubBookRef epubBookRef = await epub.EpubReader.openBook(
         io.File(e.path).readAsBytes(),
       );
       bookRefs.add({

@@ -35,8 +35,9 @@ dependencies:
     cupertino_icons: ^1.0.2
     device_apps: ^2.1.1
     qr_flutter: ^4.0.0
-    epub_view:
-        path: ../packages.flutter/packages/epub_view
+    android_intent_plus: ^3.1.1
+    epubx: ^3.0.0
+    scrollable_positioned_list: ^0.2.3
 
 dev_dependencies:
     flutter_test:

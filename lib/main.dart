@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:epaperdisplaylauncher/cloud_download_page.dart';
 import 'package:epaperdisplaylauncher/home_page.dart';
 import 'package:epaperdisplaylauncher/library_page.dart';
@@ -62,10 +64,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
-    SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.manual,
-      overlays: [SystemUiOverlay.top],
-    );
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.initState();
     _myPage = PageController(
       initialPage: 0,
@@ -76,8 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void dispose() {
     super.dispose();
-
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   }
 
   @override

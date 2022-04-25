@@ -1,11 +1,7 @@
 {
-	"folders": [
-		{
-			"path": ".."
-		},
-		{
-			"path": "../../packages.flutter"
-		}
-	],
-	"settings": {}
+  "folders": [
+    {
+      "path": ".."
+    }
+  ]
 }
