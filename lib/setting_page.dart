@@ -1,3 +1,4 @@
+import 'package:epaperdisplaylauncher/about_page.dart';
 import 'package:flutter/material.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:android_intent_plus/android_intent.dart';
@@ -28,7 +29,7 @@ class _SettingPageState extends State<SettingPage> {
     ];
   }
 
-  void launchPage(String page) {
+  void launchPage(String page, BuildContext context) {
     switch (page) {
       case 'WiFi connection':
         const intent = AndroidIntent(
@@ -56,18 +57,18 @@ class _SettingPageState extends State<SettingPage> {
         );
         intent.launch();
         break;
+      case 'About this device':
+        Navigator.push(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation1, animation2) => const AboutPage(),
+            transitionDuration: Duration.zero,
+            reverseTransitionDuration: Duration.zero,
+          ),
+        );
+        break;
       default:
     }
-    // Navigator.push(
-    //   context,
-    //   PageRouteBuilder(
-    //     pageBuilder: (context, animation1, animation2) => const Scaffold(
-    //       body: Center(child: Text("hi")),
-    //     ),
-    //     transitionDuration: Duration.zero,
-    //     reverseTransitionDuration: Duration.zero,
-    //   ),
-    // );
     // const intent = AndroidIntent(
     //   action: 'onyx_epdc_update_to_display()',
     // );
@@ -101,7 +102,7 @@ class _SettingPageState extends State<SettingPage> {
               itemBuilder: (BuildContext context, int index) {
                 return GestureDetector(
                   onTap: () {
-                    launchPage(settings[index]);
+                    launchPage(settings[index], context);
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(
