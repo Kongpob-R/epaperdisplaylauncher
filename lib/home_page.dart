@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:device_apps/device_apps.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -9,41 +8,76 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Application> apps = [];
-
-  void getApp() async {
-    apps = await DeviceApps.getInstalledApplications(
-      includeAppIcons: true,
-      includeSystemApps: true,
-      onlyAppsWithLaunchIntent: false,
-    );
-  }
-
   @override
   void initState() {
-    getApp();
     super.initState();
   }
 
+  //  assets/images/Logo_central_library.jpg
+  //  assets/images/Logo_EE.gif
+  //  assets/images/Logo_ENG_small.png
+  //  assets/images/Logo_icit_account.png
+  //  assets/images/Logo_kmutnb.png
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(8),
-      itemCount: apps.length,
-      itemBuilder: (BuildContext context, int index) {
-        return GestureDetector(
-          onTap: () => DeviceApps.openApp(apps[index].packageName),
-          child: SizedBox(
-            height: 50,
-            child: Column(
-              children: <Widget>[
-                Center(child: Text('Entry ${apps[index].appName}')),
-                Center(child: Text('packageName ${apps[index].packageName}')),
-              ],
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: <Widget>[
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: <Widget>[
+            SizedBox(
+              width: 150,
+              height: 150,
+              child: Image.asset("assets/images/Logo_kmutnb.png"),
             ),
+            SizedBox(
+              width: 150,
+              height: 150,
+              child: Image.asset("assets/images/Logo_ENG_small.png"),
+            ),
+            SizedBox(
+              width: 150,
+              height: 150,
+              child: Image.asset("assets/images/Logo_EE.gif"),
+            ),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(0, 32.0, 0, 0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              SizedBox(
+                width: 150,
+                height: 150,
+                child: Image.asset("assets/images/Logo_central_library.jpg"),
+              ),
+              SizedBox(
+                width: 150,
+                height: 150,
+                child: Image.asset("assets/images/Logo_icit_account.png"),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(4, 128, 4, 4),
+          child: Text(
+            "This e-book reader belongs to Faculty of Engineering",
+            textAlign: TextAlign.center,
+            textScaleFactor: 1.2,
+          ),
+        ),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(4, 4, 4, 32),
+          child: Text(
+            " King Mongkut's University of Technology North Bangkok ",
+            textAlign: TextAlign.center,
+            textScaleFactor: 1.2,
+          ),
+        ),
+      ],
     );
   }
 }
