@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'dart:typed_data';
+import 'package:epaperdisplaylauncher/loading_indicator.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/image.dart' as widgetImage;
@@ -99,7 +100,6 @@ class _LibraryPageState extends State<LibraryPage> {
   @override
   void dispose() {
     super.dispose();
-    files = [];
   }
 
   Widget buildEpubWidget(epub.EpubBookRef book) {
@@ -172,38 +172,57 @@ class _LibraryPageState extends State<LibraryPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(0, 30, 0, 0),
-      child: Column(
-        children: <Widget>[
-          Expanded(
-            child: ScrollablePositionedList.builder(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: files.length,
-              itemScrollController: itemScrollController,
-              itemPositionsListener: itemPositionsListener,
-              itemBuilder: (BuildContext context, int index) {
-                return GestureDetector(
-                  onTap: () {
-                    launchReader(files[index]['path']);
-                  },
-                  child: isLoading
-                      ? Container()
-                      : Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: const BoxDecoration(
-                            border: Border(bottom: BorderSide(width: 1)),
-                          ),
-                          child: buildEpubWidget(
-                            files[index]['ref'],
-                          ),
-                        ),
-                );
-              },
-            ),
+    if (isLoading) {
+      return Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
+          decoration: BoxDecoration(
+            border: Border.all(width: 1),
           ),
-        ],
-      ),
-    );
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: const <Widget>[
+              Text('Loading'),
+              LoadingIndicator(),
+            ],
+          ),
+        ),
+      );
+    } else {
+      return Container(
+        padding: const EdgeInsets.fromLTRB(0, 30, 0, 0),
+        child: Column(
+          children: <Widget>[
+            Expanded(
+              child: ScrollablePositionedList.builder(
+                padding: const EdgeInsets.all(16.0),
+                itemCount: files.length,
+                itemScrollController: itemScrollController,
+                itemPositionsListener: itemPositionsListener,
+                itemBuilder: (BuildContext context, int index) {
+                  return GestureDetector(
+                    onTap: () {
+                      launchReader(files[index]['path']);
+                    },
+                    child: isLoading
+                        ? Container()
+                        : Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: const BoxDecoration(
+                              border: Border(bottom: BorderSide(width: 1)),
+                            ),
+                            child: buildEpubWidget(
+                              files[index]['ref'],
+                            ),
+                          ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      );
+    }
   }
 }
