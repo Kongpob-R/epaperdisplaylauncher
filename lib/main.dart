@@ -13,6 +13,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'dart:convert';
 
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:battery_plus/battery_plus.dart';
+
 class MyHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {
@@ -51,36 +54,70 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   late int _selectedIndex;
   late PageController _myPage;
+  final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+  final Battery _battery = Battery();
   final _channel = WebSocketChannel.connect(
     Uri.parse(dotenv.env['HOST'].toString()),
   );
-  var deviceStatus = {
-    'event': 'status_res',
-    'ereaderuid': '1234',
-    'availability': 'Inuse',
-    'connection': 'Online',
-    'battery': '80%',
-  };
+  String _androidId = '';
+  String _availability = '';
+
+  Future<void> initPlatformState() async {
+    final AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+
+    if (!mounted) return;
+
+    setState(() {
+      _androidId = androidInfo.id.toString();
+      log(_androidId);
+    });
+  }
+
+  void statusRes(WebSocketChannel channel) async {
+    var deviceStatus = {
+      'event': 'status_res',
+      'ereaderuid': _androidId,
+      'availability': _availability,
+      'connection': 'Online',
+      'battery': ((await _battery.batteryLevel).toString()) + '%',
+    };
+    channel.sink.add(jsonEncode(deviceStatus));
+  }
 
   @override
   void initState() {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     WidgetsBinding.instance?.addObserver(this);
     super.initState();
+    initPlatformState();
     _myPage = PageController(
       initialPage: 0,
     );
     _selectedIndex = 0;
+
     _channel.stream.listen(
       (data) {
         data = jsonDecode(data);
         log('from stream: ' + data.toString());
         if (data['event'] == 'status_req') {
-          _channel.sink.add(jsonEncode(deviceStatus));
+          statusRes(_channel);
         }
       },
       onError: (error) => log(error.toString()),
     );
+
+    _battery.onBatteryStateChanged.listen((BatteryState state) {
+      setState(() {
+        switch (state.toString()) {
+          case 'discharging':
+            _availability = 'In use';
+            break;
+          default:
+            _availability = 'Available';
+            break;
+        }
+      });
+    });
   }
 
   @override
