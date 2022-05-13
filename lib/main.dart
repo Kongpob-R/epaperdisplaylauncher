@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:epaperdisplaylauncher/cloud_download_page.dart';
 import 'package:epaperdisplaylauncher/home_page.dart';
@@ -8,10 +9,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'custom_icon.dart';
 
-import 'package:android_intent_plus/android_intent.dart';
-import 'package:android_intent_plus/flag.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'dart:convert';
 
-void main() {
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+  }
+}
+
+void main() async {
+  HttpOverrides.global = MyHttpOverrides();
+  await dotenv.load(fileName: '.env');
   runApp(const MyHomePage(
     title: '',
   ));
@@ -38,6 +51,16 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   late int _selectedIndex;
   late PageController _myPage;
+  final _channel = WebSocketChannel.connect(
+    Uri.parse(dotenv.env['HOST'].toString()),
+  );
+  var deviceStatus = {
+    'event': 'status_res',
+    'ereaderuid': '1234',
+    'availability': 'Inuse',
+    'connection': 'Online',
+    'battery': '80%',
+  };
 
   @override
   void initState() {
@@ -48,6 +71,16 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       initialPage: 0,
     );
     _selectedIndex = 0;
+    _channel.stream.listen(
+      (data) {
+        data = jsonDecode(data);
+        log('from stream: ' + data.toString());
+        if (data['event'] == 'status_req') {
+          _channel.sink.add(jsonEncode(deviceStatus));
+        }
+      },
+      onError: (error) => log(error.toString()),
+    );
   }
 
   @override
