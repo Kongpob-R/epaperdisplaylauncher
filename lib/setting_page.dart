@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:android_intent_plus/android_intent.dart';
 import 'package:android_intent_plus/flag.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class SettingPage extends StatefulWidget {
   const SettingPage({Key? key}) : super(key: key);
@@ -32,8 +33,10 @@ class _SettingPageState extends State<SettingPage> {
   void launchPage(String page, BuildContext context) {
     switch (page) {
       case 'WiFi connection':
-        const intent = AndroidIntent(
-          action: 'onyx.settings.action.wifi',
+        var intent = AndroidIntent(
+          // action: 'onyx.settings.action.wifi',
+          // action: 'android.settings.WIFI_SETTINGS',
+          action: (dotenv.env['WIFI_SETTING'].toString()),
         );
         intent.launch();
         break;

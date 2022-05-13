@@ -52,6 +52,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
+  final navigatorKey = GlobalKey<NavigatorState>();
   late int _selectedIndex;
   late PageController _myPage;
   final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
@@ -84,6 +85,51 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     channel.sink.add(jsonEncode(deviceStatus));
   }
 
+  void downloadRes(WebSocketChannel channel, String url) async {
+    var res = {
+      'event': 'download_res',
+      'ereaderuid': _androidId,
+      'url': url,
+    };
+    channel.sink.add(jsonEncode(res));
+    showDownloadResDialog();
+  }
+
+  void showDownloadResDialog() {
+    showDialog(
+      context: navigatorKey.currentContext!,
+      builder: (context) => AlertDialog(
+        shape: Border.all(
+          color: Colors.black,
+        ),
+        title: const Text('Book Name'),
+        content: const Text('Download Complete'),
+        actions: <Widget>[
+          TextButton(
+            style: ButtonStyle(
+              side: MaterialStateProperty.all(
+                  const BorderSide(width: 1, color: Colors.black)),
+              foregroundColor: MaterialStateProperty.all(Colors.black),
+              padding: MaterialStateProperty.all(
+                  const EdgeInsets.symmetric(vertical: 10, horizontal: 40)),
+              textStyle:
+                  MaterialStateProperty.all(const TextStyle(fontSize: 20)),
+            ),
+            onPressed: () {
+              Navigator.pop(context, 'Launch library');
+              _myPage.jumpToPage(1);
+              setState(() {
+                _selectedIndex = 1;
+              });
+            },
+            child: const Text('Launch library'),
+          ),
+        ],
+        actionsAlignment: MainAxisAlignment.center,
+      ),
+    );
+  }
+
   @override
   void initState() {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -99,8 +145,14 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       (data) {
         data = jsonDecode(data);
         log('from stream: ' + data.toString());
-        if (data['event'] == 'status_req') {
-          statusRes(_channel);
+        switch (data['event']) {
+          case 'status_req':
+            statusRes(_channel);
+            break;
+          case 'download':
+            downloadRes(_channel, data['url']);
+            break;
+          default:
         }
       },
       onError: (error) => log(error.toString()),
@@ -149,13 +201,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     log('build MyhomePage');
-    // const intent = AndroidIntent(
-    //   action: 'android.intent.action.MAIN',
-    //   package: 'com.happysoft.epaperdisplaylauncher',
-    //   flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
-    // );
-    // intent.launch();
     return MaterialApp(
+      navigatorKey: navigatorKey,
       home: Scaffold(
         body: PageView(
           physics: const NeverScrollableScrollPhysics(),
