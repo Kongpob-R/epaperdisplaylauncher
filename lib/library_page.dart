@@ -5,6 +5,7 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/image.dart' as widgetImage;
 import 'package:epubx/epubx.dart' as epub;
+import 'package:pdf_text/pdf_text.dart';
 import 'package:image/image.dart' as image;
 import 'package:path/path.dart' as path;
 import 'dart:io' as io;
@@ -72,18 +73,23 @@ class _LibraryPageState extends State<LibraryPage> {
         );
       }
     }
-    bookPaths = bookPaths
-        .where((element) =>
-            element.path.contains('.epub') || element.path.contains('.pdf'))
-        .toList();
-    for (var e in bookPaths) {
-      final epub.EpubBookRef epubBookRef = await epub.EpubReader.openBook(
-        io.File(e.path).readAsBytes(),
-      );
-      bookRefs.add({
-        'ref': epubBookRef,
-        'path': e.path.toString(),
-      });
+    for (var book in bookPaths) {
+      log(book.path);
+      if (book.path.contains('.epub')) {
+        final epub.EpubBookRef epubBookRef = await epub.EpubReader.openBook(
+          io.File(book.path).readAsBytes(),
+        );
+        bookRefs.add({
+          'ref': epubBookRef,
+          'path': book.path.toString(),
+        });
+      } else if (book.path.contains('.pdf')) {
+        final PDFDoc doc = await PDFDoc.fromPath(book.path);
+        bookRefs.add({
+          'doc': doc.info,
+          'path': book.path.toString(),
+        });
+      }
     }
     setState(() {
       files = bookRefs;
@@ -95,6 +101,9 @@ class _LibraryPageState extends State<LibraryPage> {
   void initState() {
     super.initState();
     _listBooks(['Books']);
+    setState(() {
+      isLoading = true;
+    });
   }
 
   @override
@@ -170,12 +179,62 @@ class _LibraryPageState extends State<LibraryPage> {
         ));
   }
 
+  Widget buildPdfWidget(PDFDocInfo book) {
+    return Container(
+        padding: const EdgeInsets.all(8),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  const Text(
+                    "Title",
+                  ),
+                  Text(
+                    book.title!,
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(top: 15.0),
+                  ),
+                  const Text(
+                    "Author",
+                  ),
+                  Text(
+                    book.author!,
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(top: 15.0),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              width: 100,
+              height: 120,
+              decoration: BoxDecoration(
+                border: Border.all(width: 1),
+              ),
+              child: Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: Center(
+                    child: Text(
+                      book.title!,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  )),
+            )
+          ],
+        ));
+  }
+
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return Center(
+      return SizedBox(
+        width: 100,
+        height: 60,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
           decoration: BoxDecoration(
             border: Border.all(width: 1),
           ),
@@ -212,9 +271,13 @@ class _LibraryPageState extends State<LibraryPage> {
                             decoration: const BoxDecoration(
                               border: Border(bottom: BorderSide(width: 1)),
                             ),
-                            child: buildEpubWidget(
-                              files[index]['ref'],
-                            ),
+                            child: files[index]['ref']
+                                ? buildEpubWidget(
+                                    files[index]['ref'],
+                                  )
+                                : buildPdfWidget(
+                                    files[index]['doc'],
+                                  ),
                           ),
                   );
                 },

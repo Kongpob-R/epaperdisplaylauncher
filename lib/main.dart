@@ -5,14 +5,17 @@ import 'package:epaperdisplaylauncher/cloud_download_page.dart';
 import 'package:epaperdisplaylauncher/home_page.dart';
 import 'package:epaperdisplaylauncher/library_page.dart';
 import 'package:epaperdisplaylauncher/setting_page.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'custom_icon.dart';
-
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'dart:convert';
-
+import 'dart:async';
+import 'package:http/http.dart';
+import 'package:html/parser.dart' as html;
+import 'package:html/dom.dart' as html;
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:battery_plus/battery_plus.dart';
 
@@ -62,6 +65,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   );
   String _androidId = '';
   String _availability = '';
+  String targetPath = '/storage/emulated/0/Books';
 
   Future<void> initPlatformState() async {
     final AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
@@ -92,7 +96,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       'url': url,
     };
     channel.sink.add(jsonEncode(res));
-    showDownloadResDialog();
+    log(await downloadFile(url, targetPath));
+    // showDownloadResDialog();
   }
 
   void showDownloadResDialog() {
@@ -288,5 +293,82 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         ),
       ),
     );
+  }
+
+  Future<String> downloadFile(String url, String dir) async {
+    String proxyHost = dotenv.env['PROXY_HOST'].toString();
+    int proxyInt = int.parse(dotenv.env['PROXY_PORT'].toString());
+    String proxyUser = dotenv.env['PROXY_HOST'].toString();
+    String proxyPassword = dotenv.env['PROXY_HOST'].toString();
+    HttpClient httpClient = HttpClient();
+    File file;
+    String filePath = '';
+    String fullUrl = '';
+    List<String> splitedHostUrl = url.split('/');
+    splitedHostUrl.removeLast();
+    String hostUrl = splitedHostUrl.join('/');
+    String fileName = url.split('/').last;
+
+    try {
+      fullUrl = hostUrl + '/' + fileName;
+      if (proxyHost.isNotEmpty) {
+        httpClient.addProxyCredentials(proxyHost, proxyInt, '',
+            HttpClientBasicCredentials(proxyUser, proxyPassword));
+      }
+
+      var request = await httpClient.getUrl(Uri.parse(fullUrl));
+      var response = await request.close();
+      var document = html.parse(await readResponse(response));
+      html.Element redirect =
+          document.querySelector('meta[HTTP-EQUIV="Refresh"]')!;
+      String bookDownloaderUrl = redirect.attributes['content'].toString();
+      bookDownloaderUrl = bookDownloaderUrl.substring(8);
+
+      request = await httpClient.getUrl(Uri.parse(bookDownloaderUrl));
+      response = await request.close();
+      document = html.parse(await readResponse(response));
+      List<html.Element> formInputs = document.querySelectorAll('input');
+      List<Map<String, dynamic>> formMap = [];
+      for (var parameter in formInputs) {
+        formMap.add({
+          'name': parameter.attributes['name'],
+          'value': parameter.attributes['value']
+        });
+      }
+      log(formMap.toString());
+
+      // Download=Open+from+Central+Library
+      // &bibid=B15376187
+      // &num_access=
+      // &fname=%2Febook%2FB15376187.pdf
+      // &id_code=%2Febook%2FB15376187.pdf
+      // &porpose=0
+      // &other=
+      // &xserver= http%3A%2F%2Flibrary.kmutnb.ac.th%2F
+      // &option=com_search
+
+      // if (response.statusCode == 200) {
+      //   var bytes = await consolidateHttpClientResponseBytes(response);
+      //   filePath = '$dir/$fileName';
+      //   file = File(filePath);
+      //   await file.writeAsBytes(bytes);
+      // } else {
+      //   filePath = 'Error code: ' + response.statusCode.toString();
+      // }
+    } catch (ex) {
+      filePath = ex.toString() + ' // Can not fetch url';
+    }
+
+    return filePath;
+  }
+
+  Future<String> readResponse(HttpClientResponse response) {
+    final completer = Completer<String>();
+    final contents = StringBuffer();
+    response.transform(utf8.decoder).listen((data) {
+      contents.write(data);
+      log(data);
+    }, onDone: () => completer.complete(contents.toString()));
+    return completer.future;
   }
 }
