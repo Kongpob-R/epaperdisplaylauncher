@@ -13,7 +13,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'dart:convert';
 import 'dart:async';
-import 'package:http/http.dart';
 import 'package:html/parser.dart' as html;
 import 'package:html/dom.dart' as html;
 import 'package:device_info_plus/device_info_plus.dart';
@@ -29,8 +28,8 @@ class MyHttpOverrides extends HttpOverrides {
 }
 
 void main() async {
-  HttpOverrides.global = MyHttpOverrides();
   await dotenv.load(fileName: '.env');
+  HttpOverrides.global = MyHttpOverrides();
   runApp(const MyHomePage(
     title: '',
   ));
@@ -297,9 +296,9 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   Future<String> downloadFile(String url, String dir) async {
     String proxyHost = dotenv.env['PROXY_HOST'].toString();
-    int proxyInt = int.parse(dotenv.env['PROXY_PORT'].toString());
-    String proxyUser = dotenv.env['PROXY_HOST'].toString();
-    String proxyPassword = dotenv.env['PROXY_HOST'].toString();
+    int proxyPort = int.parse(dotenv.env['PROXY_PORT'].toString());
+    String proxyUser = dotenv.env['PROXY_USER'].toString();
+    String proxyPassword = dotenv.env['PROXY_PASSWORD'].toString();
     HttpClient httpClient = HttpClient();
     File file;
     String filePath = '';
@@ -312,8 +311,13 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     try {
       fullUrl = hostUrl + '/' + fileName;
       if (proxyHost.isNotEmpty) {
-        httpClient.addProxyCredentials(proxyHost, proxyInt, '',
+        httpClient.addProxyCredentials(proxyHost, proxyPort, '',
             HttpClientBasicCredentials(proxyUser, proxyPassword));
+        // httpClient.findProxy = (url) {
+        //   return HttpClient.findProxyFromEnvironment(url, environment: {
+        //     "http_proxy": "$proxyUser:$proxyPassword@$proxyHost:$proxyPort"
+        //   });
+        // };
       }
 
       var request = await httpClient.getUrl(Uri.parse(fullUrl));
@@ -323,6 +327,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           document.querySelector('meta[HTTP-EQUIV="Refresh"]')!;
       String bookDownloaderUrl = redirect.attributes['content'].toString();
       bookDownloaderUrl = bookDownloaderUrl.substring(8);
+      bookDownloaderUrl = 'http' + bookDownloaderUrl.substring(5);
+      log(bookDownloaderUrl);
 
       request = await httpClient.getUrl(Uri.parse(bookDownloaderUrl));
       response = await request.close();
