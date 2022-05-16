@@ -15,7 +15,7 @@ class _CloudDownloadPageState extends State<CloudDownloadPage> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         BarcodeWidget(
           barcode: Barcode.qrCode(
@@ -26,12 +26,17 @@ class _CloudDownloadPageState extends State<CloudDownloadPage> {
           height: 200,
         ),
         const Padding(
-          padding: EdgeInsets.all(12.0),
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 24),
           child: Text(
-            'Please scan QR code to download more books from KMUTNB library',
-            textScaleFactor: 2.5,
+            'Please scan QR code to download more e-books! All resources are provided by KMUTNB Central Library.',
+            textScaleFactor: 1.5,
             textAlign: TextAlign.center,
           ),
+        ),
+        SizedBox(
+          width: 100,
+          height: 100,
+          child: Image.asset("assets/images/Logo_lib_2016.png"),
         ),
       ],
     );

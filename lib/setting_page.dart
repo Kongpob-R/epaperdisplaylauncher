@@ -117,7 +117,7 @@ class _SettingPageState extends State<SettingPage> {
                     ),
                     child: Text(
                       settings[index],
-                      textScaleFactor: 2,
+                      textScaleFactor: 1.5,
                     ),
                   ),
                 );

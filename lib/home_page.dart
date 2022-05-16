@@ -34,11 +34,6 @@ class _HomePageState extends State<HomePage> {
             SizedBox(
               width: 150,
               height: 150,
-              child: Image.asset("assets/images/Logo_ENG_small.png"),
-            ),
-            SizedBox(
-              width: 150,
-              height: 150,
               child: Image.asset("assets/images/Logo_EE.gif"),
             ),
           ],
@@ -51,12 +46,7 @@ class _HomePageState extends State<HomePage> {
               SizedBox(
                 width: 150,
                 height: 150,
-                child: Image.asset("assets/images/Logo_central_library.jpg"),
-              ),
-              SizedBox(
-                width: 150,
-                height: 150,
-                child: Image.asset("assets/images/Logo_icit_account.png"),
+                child: Image.asset("assets/images/Logo_lib_2016.png"),
               ),
             ],
           ),

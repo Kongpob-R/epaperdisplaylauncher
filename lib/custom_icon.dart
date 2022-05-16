@@ -25,7 +25,7 @@ Expanded customIcon(index, _selectedIndex, icon, lable, onPressed) {
               icon,
               Text(
                 lable,
-                textScaleFactor: 0.8,
+                textScaleFactor: 1.1,
               )
             ],
           ),
