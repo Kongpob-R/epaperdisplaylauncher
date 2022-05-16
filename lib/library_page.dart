@@ -5,7 +5,6 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/image.dart' as widgetImage;
 import 'package:epubx/epubx.dart' as epub;
-import 'package:pdf_text/pdf_text.dart';
 import 'package:image/image.dart' as image;
 import 'package:path/path.dart' as path;
 import 'dart:io' as io;
@@ -51,6 +50,7 @@ class _LibraryPageState extends State<LibraryPage> {
       action: 'action_view',
       flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
       data: Uri.file(filePath, windows: false).toString(),
+      type: 'application/pdf',
     );
     await intent.launch();
   }
@@ -80,13 +80,14 @@ class _LibraryPageState extends State<LibraryPage> {
           io.File(book.path).readAsBytes(),
         );
         bookRefs.add({
+          'type': 'epub',
           'ref': epubBookRef,
           'path': book.path.toString(),
         });
       } else if (book.path.contains('.pdf')) {
-        final PDFDoc doc = await PDFDoc.fromPath(book.path);
         bookRefs.add({
-          'doc': doc.info,
+          'type': 'pdf',
+          'doc': '',
           'path': book.path.toString(),
         });
       }
@@ -179,7 +180,8 @@ class _LibraryPageState extends State<LibraryPage> {
         ));
   }
 
-  Widget buildPdfWidget(PDFDocInfo book) {
+  Widget buildPdfWidget(cover, String path) {
+    String fileName = path.split('/').last.split('.').first;
     return Container(
         padding: const EdgeInsets.all(8),
         child: Row(
@@ -192,7 +194,7 @@ class _LibraryPageState extends State<LibraryPage> {
                     "Title",
                   ),
                   Text(
-                    book.title!,
+                    fileName,
                   ),
                   const Padding(
                     padding: EdgeInsets.only(top: 15.0),
@@ -200,8 +202,8 @@ class _LibraryPageState extends State<LibraryPage> {
                   const Text(
                     "Author",
                   ),
-                  Text(
-                    book.author!,
+                  const Text(
+                    'Unknow',
                   ),
                   const Padding(
                     padding: EdgeInsets.only(top: 15.0),
@@ -219,7 +221,7 @@ class _LibraryPageState extends State<LibraryPage> {
                   padding: const EdgeInsets.all(3),
                   child: Center(
                     child: Text(
-                      book.title!,
+                      fileName,
                       overflow: TextOverflow.ellipsis,
                     ),
                   )),
@@ -271,12 +273,13 @@ class _LibraryPageState extends State<LibraryPage> {
                             decoration: const BoxDecoration(
                               border: Border(bottom: BorderSide(width: 1)),
                             ),
-                            child: files[index]['ref']
+                            child: files[index]['type'] == 'epub'
                                 ? buildEpubWidget(
                                     files[index]['ref'],
                                   )
                                 : buildPdfWidget(
                                     files[index]['doc'],
+                                    files[index]['path'],
                                   ),
                           ),
                   );

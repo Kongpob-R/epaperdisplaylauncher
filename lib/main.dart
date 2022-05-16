@@ -5,7 +5,6 @@ import 'package:epaperdisplaylauncher/cloud_download_page.dart';
 import 'package:epaperdisplaylauncher/home_page.dart';
 import 'package:epaperdisplaylauncher/library_page.dart';
 import 'package:epaperdisplaylauncher/setting_page.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'custom_icon.dart';
@@ -211,11 +210,11 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         body: PageView(
           physics: const NeverScrollableScrollPhysics(),
           controller: _myPage,
-          children: const <Widget>[
-            Center(child: HomePage()),
-            Center(child: LibraryPage()),
-            Center(child: CloudDownloadPage()),
-            Center(child: SettingPage()),
+          children: <Widget>[
+            const Center(child: HomePage()),
+            const Center(child: LibraryPage()),
+            Center(child: CloudDownloadPage(androidId: _androidId)),
+            const Center(child: SettingPage()),
           ],
         ),
         bottomNavigationBar: Container(

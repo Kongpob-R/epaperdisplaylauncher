@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+import 'package:barcode_widget/barcode_widget.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class CloudDownloadPage extends StatefulWidget {
-  const CloudDownloadPage({Key? key}) : super(key: key);
+  final String androidId;
+  const CloudDownloadPage({Key? key, required this.androidId})
+      : super(key: key);
 
   @override
   State<CloudDownloadPage> createState() => _CloudDownloadPageState();
@@ -14,10 +17,13 @@ class _CloudDownloadPageState extends State<CloudDownloadPage> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
-        QrImage(
-          data: "1234567890",
-          version: QrVersions.auto,
-          size: 200.0,
+        BarcodeWidget(
+          barcode: Barcode.qrCode(
+            errorCorrectLevel: BarcodeQRCorrectionLevel.high,
+          ),
+          data: '${dotenv.env['HOST_LOGIN']}${widget.androidId}',
+          width: 200,
+          height: 200,
         ),
         const Padding(
           padding: EdgeInsets.all(12.0),
