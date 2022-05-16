@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:epaperdisplaylauncher/cloud_download_page.dart';
 import 'package:epaperdisplaylauncher/home_page.dart';
 import 'package:epaperdisplaylauncher/library_page.dart';
+import 'package:epaperdisplaylauncher/pre_download_controller.dart';
 import 'package:epaperdisplaylauncher/setting_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -62,6 +63,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   String _androidId = '';
   String _shortName = '';
   String _availability = '';
+  List<dynamic> _preDownloadList = [];
   String targetPath = '/storage/emulated/0/Books';
 
   Future<void> initPlatformState() async {
@@ -166,6 +168,13 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
               log(_shortName);
             });
             break;
+          case 'pre_download_res':
+            setState(() {
+              _preDownloadList = data['pre_download_list'];
+              log(_preDownloadList.toString());
+            });
+            resetToDefault(_preDownloadList);
+            break;
           default:
         }
       },
@@ -174,6 +183,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       cancelOnError: true,
     );
     _channel.sink.add(json.encode({'event': 'short_name_req'}));
+    _channel.sink.add(json.encode({'event': 'pre_download_req'}));
   }
 
   @override
@@ -188,16 +198,24 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     );
     _selectedIndex = 0;
     _battery.onBatteryStateChanged.listen((BatteryState state) {
+      log('$state');
       setState(() {
-        switch (state.toString()) {
-          case 'discharging':
-            _availability = 'In use';
+        switch ('$state') {
+          case 'BatteryState.charging':
+            _availability = 'Available';
+            break;
+          case 'BatteryState.full':
+            _availability = 'Available';
             break;
           default:
-            _availability = 'Available';
+            _availability = 'In use';
             break;
         }
       });
+      statusRes(_channel);
+      if (_availability == 'Available') {
+        _channel.sink.add(json.encode({'event': 'pre_download_req'}));
+      }
     });
   }
 
