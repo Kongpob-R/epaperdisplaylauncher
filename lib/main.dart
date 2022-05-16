@@ -58,10 +58,9 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   late PageController _myPage;
   final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
   final Battery _battery = Battery();
-  final _channel = WebSocketChannel.connect(
-    Uri.parse(dotenv.env['HOST'].toString()),
-  );
+  late WebSocketChannel _channel;
   String _androidId = '';
+  String _shortName = '';
   String _availability = '';
   String targetPath = '/storage/emulated/0/Books';
 
@@ -133,17 +132,23 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     );
   }
 
-  @override
-  void initState() {
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    WidgetsBinding.instance?.addObserver(this);
-    super.initState();
-    initPlatformState();
-    _myPage = PageController(
-      initialPage: 0,
-    );
-    _selectedIndex = 0;
+  void wserror(err) async {
+    log(DateTime.now().toString() + " Connection error: $err");
+    setState(() {
+      _shortName = '';
+    });
+    reconnect();
+  }
 
+  void reconnect() async {
+    await Future.delayed(const Duration(seconds: 4));
+    setState(() {
+      log(DateTime.now().toString() + " Starting connection attempt...");
+      _channel = WebSocketChannel.connect(
+        Uri.parse(dotenv.env['HOST'].toString()),
+      );
+      log(DateTime.now().toString() + " Connection attempt completed.");
+    });
     _channel.stream.listen(
       (data) {
         data = jsonDecode(data);
@@ -155,12 +160,33 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           case 'download':
             downloadRes(_channel, data['url']);
             break;
+          case 'short_name_res':
+            setState(() {
+              _shortName = data[_androidId];
+              log(_shortName);
+            });
+            break;
           default:
         }
       },
-      onError: (error) => log(error.toString()),
+      onDone: reconnect,
+      onError: wserror,
+      cancelOnError: true,
     );
+    _channel.sink.add(json.encode({'event': 'short_name_req'}));
+  }
 
+  @override
+  void initState() {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    WidgetsBinding.instance?.addObserver(this);
+    super.initState();
+    reconnect();
+    initPlatformState();
+    _myPage = PageController(
+      initialPage: 0,
+    );
+    _selectedIndex = 0;
     _battery.onBatteryStateChanged.listen((BatteryState state) {
       setState(() {
         switch (state.toString()) {
@@ -213,7 +239,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           children: <Widget>[
             const Center(child: HomePage()),
             const Center(child: LibraryPage()),
-            Center(child: CloudDownloadPage(androidId: _androidId)),
+            Center(child: CloudDownloadPage(shortName: _shortName)),
             const Center(child: SettingPage()),
           ],
         ),

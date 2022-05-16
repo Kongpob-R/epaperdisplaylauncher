@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:typed_data';
 import 'package:epaperdisplaylauncher/loading_indicator.dart';
@@ -21,6 +22,7 @@ class LibraryPage extends StatefulWidget {
 
 class _LibraryPageState extends State<LibraryPage> {
   late bool isLoading;
+  late StreamSubscription<List> _listBooksProcess;
   late String filePath;
   String rootDirectory = '/storage/emulated/0';
   List files = [];
@@ -55,10 +57,7 @@ class _LibraryPageState extends State<LibraryPage> {
     await intent.launch();
   }
 
-  Future _listBooks(List<String> subDirectories) async {
-    setState(() {
-      isLoading = true;
-    });
+  Future<List> _listBooks(List<String> subDirectories) async {
     List bookPaths = [];
     List bookRefs = [];
     for (var subDirectory in subDirectories) {
@@ -92,23 +91,26 @@ class _LibraryPageState extends State<LibraryPage> {
         });
       }
     }
-    setState(() {
-      files = bookRefs;
-      isLoading = false;
-    });
+    return bookRefs;
   }
 
   @override
   void initState() {
     super.initState();
-    _listBooks(['Books']);
     setState(() {
       isLoading = true;
+    });
+    _listBooksProcess = _listBooks(['Books']).asStream().listen((data) {
+      setState(() {
+        files = data;
+        isLoading = false;
+      });
     });
   }
 
   @override
   void dispose() {
+    _listBooksProcess.cancel();
     super.dispose();
   }
 
