@@ -23,11 +23,11 @@ class _LoadingIndicatorState extends State<LoadingIndicator> {
           ),
           BlinkWidget(
             children: <Widget>[
-              Icon(Icons.square),
               Icon(Icons.crop_square),
+              Icon(Icons.square),
             ],
             interval: 1200,
-            offset: 400,
+            offset: 0,
           ),
           BlinkWidget(
             children: <Widget>[
@@ -35,7 +35,7 @@ class _LoadingIndicatorState extends State<LoadingIndicator> {
               Icon(Icons.crop_square),
             ],
             interval: 1200,
-            offset: 800,
+            offset: 0,
           ),
         ],
         mainAxisAlignment: MainAxisAlignment.center,

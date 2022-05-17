@@ -6,6 +6,7 @@ import 'package:epaperdisplaylauncher/home_page.dart';
 import 'package:epaperdisplaylauncher/library_page.dart';
 import 'package:epaperdisplaylauncher/pre_download_controller.dart';
 import 'package:epaperdisplaylauncher/setting_page.dart';
+import 'download_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'custom_icon.dart';
@@ -13,8 +14,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'dart:convert';
 import 'dart:async';
-import 'package:html/parser.dart' as html;
-import 'package:html/dom.dart' as html;
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:battery_plus/battery_plus.dart';
 
@@ -88,25 +87,31 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     channel.sink.add(jsonEncode(deviceStatus));
   }
 
-  void downloadRes(WebSocketChannel channel, String url) async {
+  void downloadRes(
+    WebSocketChannel channel,
+    String url,
+    String username,
+    String token,
+  ) async {
     var res = {
       'event': 'download_res',
       'ereaderuid': _androidId,
+      'username': username,
       'url': url,
     };
     channel.sink.add(jsonEncode(res));
-    log(await downloadFile(url, targetPath));
-    // showDownloadResDialog();
+    log('Downloaded: ' + await downloadFile(url, username, token, targetPath));
+    showDownloadDialog(targetPath.toString());
   }
 
-  void showDownloadResDialog() {
+  void showDownloadDialog(String bookName) {
     showDialog(
       context: navigatorKey.currentContext!,
       builder: (context) => AlertDialog(
         shape: Border.all(
           color: Colors.black,
         ),
-        title: const Text('Book Name'),
+        title: Text(bookName),
         content: const Text('Download Complete'),
         actions: <Widget>[
           TextButton(
@@ -160,7 +165,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
             statusRes(_channel);
             break;
           case 'download':
-            downloadRes(_channel, data['url']);
+            downloadRes(_channel, data['url'], data['user'], data['token']);
             break;
           case 'short_name_res':
             setState(() {
@@ -171,9 +176,16 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           case 'pre_download_res':
             setState(() {
               _preDownloadList = data['pre_download_list'];
-              log(_preDownloadList.toString());
             });
-            resetToDefault(_preDownloadList);
+            List urlToDownloadList = resetToDefault(_preDownloadList);
+            for (String urlToDownload in urlToDownloadList) {
+              downloadRes(
+                _channel,
+                urlToDownload,
+                data['user'] ?? 'adminEreader',
+                data['token'] ?? dotenv.env['TOKEN'].toString(),
+              );
+            }
             break;
           default:
         }
@@ -183,7 +195,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       cancelOnError: true,
     );
     _channel.sink.add(json.encode({'event': 'short_name_req'}));
-    _channel.sink.add(json.encode({'event': 'pre_download_req'}));
+    // _channel.sink.add(json.encode({'event': 'pre_download_req'}));
   }
 
   @override
@@ -198,6 +210,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     );
     _selectedIndex = 0;
     _battery.onBatteryStateChanged.listen((BatteryState state) {
+      String stateTemp = _availability;
       log('$state');
       setState(() {
         switch ('$state') {
@@ -213,8 +226,9 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         }
       });
       statusRes(_channel);
-      if (_availability == 'Available') {
-        _channel.sink.add(json.encode({'event': 'pre_download_req'}));
+      if (stateTemp != _availability) {
+        // _channel.sink.add(json.encode({'event': 'pre_download_req'}));
+        log('emit pre_download_req');
       }
     });
   }
@@ -335,89 +349,5 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         ),
       ),
     );
-  }
-
-  Future<String> downloadFile(String url, String dir) async {
-    String proxyHost = dotenv.env['PROXY_HOST'].toString();
-    int proxyPort = int.parse(dotenv.env['PROXY_PORT'].toString());
-    String proxyUser = dotenv.env['PROXY_USER'].toString();
-    String proxyPassword = dotenv.env['PROXY_PASSWORD'].toString();
-    HttpClient httpClient = HttpClient();
-    File file;
-    String filePath = '';
-    String fullUrl = '';
-    List<String> splitedHostUrl = url.split('/');
-    splitedHostUrl.removeLast();
-    String hostUrl = splitedHostUrl.join('/');
-    String fileName = url.split('/').last;
-
-    try {
-      fullUrl = hostUrl + '/' + fileName;
-      if (proxyHost.isNotEmpty) {
-        httpClient.addProxyCredentials(proxyHost, proxyPort, '',
-            HttpClientBasicCredentials(proxyUser, proxyPassword));
-        // httpClient.findProxy = (url) {
-        //   return HttpClient.findProxyFromEnvironment(url, environment: {
-        //     "http_proxy": "$proxyUser:$proxyPassword@$proxyHost:$proxyPort"
-        //   });
-        // };
-      }
-
-      var request = await httpClient.getUrl(Uri.parse(fullUrl));
-      var response = await request.close();
-      var document = html.parse(await readResponse(response));
-      html.Element redirect =
-          document.querySelector('meta[HTTP-EQUIV="Refresh"]')!;
-      String bookDownloaderUrl = redirect.attributes['content'].toString();
-      bookDownloaderUrl = bookDownloaderUrl.substring(8);
-      bookDownloaderUrl = 'http' + bookDownloaderUrl.substring(5);
-      log(bookDownloaderUrl);
-
-      request = await httpClient.getUrl(Uri.parse(bookDownloaderUrl));
-      response = await request.close();
-      document = html.parse(await readResponse(response));
-      List<html.Element> formInputs = document.querySelectorAll('input');
-      List<Map<String, dynamic>> formMap = [];
-      for (var parameter in formInputs) {
-        formMap.add({
-          'name': parameter.attributes['name'],
-          'value': parameter.attributes['value']
-        });
-      }
-      log(formMap.toString());
-
-      // Download=Open+from+Central+Library
-      // &bibid=B15376187
-      // &num_access=
-      // &fname=%2Febook%2FB15376187.pdf
-      // &id_code=%2Febook%2FB15376187.pdf
-      // &porpose=0
-      // &other=
-      // &xserver= http%3A%2F%2Flibrary.kmutnb.ac.th%2F
-      // &option=com_search
-
-      // if (response.statusCode == 200) {
-      //   var bytes = await consolidateHttpClientResponseBytes(response);
-      //   filePath = '$dir/$fileName';
-      //   file = File(filePath);
-      //   await file.writeAsBytes(bytes);
-      // } else {
-      //   filePath = 'Error code: ' + response.statusCode.toString();
-      // }
-    } catch (ex) {
-      filePath = ex.toString() + ' // Can not fetch url';
-    }
-
-    return filePath;
-  }
-
-  Future<String> readResponse(HttpClientResponse response) {
-    final completer = Completer<String>();
-    final contents = StringBuffer();
-    response.transform(utf8.decoder).listen((data) {
-      contents.write(data);
-      log(data);
-    }, onDone: () => completer.complete(contents.toString()));
-    return completer.future;
   }
 }
