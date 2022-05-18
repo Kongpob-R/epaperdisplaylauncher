@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:typed_data';
 import 'package:epaperdisplaylauncher/loading_indicator.dart';
+import 'package:flutter/rendering.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/image.dart' as widgetImage;
@@ -14,7 +15,8 @@ import 'package:android_intent_plus/flag.dart';
 // import 'package:path_provider/path_provider.dart';
 
 class LibraryPage extends StatefulWidget {
-  const LibraryPage({Key? key}) : super(key: key);
+  final String newBook;
+  const LibraryPage({Key? key, required this.newBook}) : super(key: key);
 
   @override
   State<LibraryPage> createState() => _LibraryPageState();
@@ -26,28 +28,10 @@ class _LibraryPageState extends State<LibraryPage> {
   late String filePath;
   String rootDirectory = '/storage/emulated/0';
   List files = [];
-  final ItemScrollController itemScrollController = ItemScrollController();
-  final ItemPositionsListener itemPositionsListener =
-      ItemPositionsListener.create();
+  final ScrollController scrollController = ScrollController();
+  List pageFiles = [];
 
   void launchReader(String filePath) async {
-    // final _result = await OpenFile.open('assets/books/bitcoin_standard.epub');
-    // Directory? storageDir = await getExternalStorageDirectory()
-    // filePath = storageDir!.path;
-    // filePath = path.join(
-    //   filePath!,
-    //   'Books',
-    //   'Cartoons on the War1248',
-    // );
-    // Navigator.push(
-    //   context,
-    //   PageRouteBuilder(
-    //     pageBuilder: (context, animation1, animation2) =>
-    //         EpubViewer(filePath: filePath),
-    //     transitionDuration: Duration.zero,
-    //     reverseTransitionDuration: Duration.zero,
-    //   ),
-    // );
     AndroidIntent intent = AndroidIntent(
       action: 'action_view',
       flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
@@ -118,33 +102,9 @@ class _LibraryPageState extends State<LibraryPage> {
     var cover = book.readCover();
     return Container(
         padding: const EdgeInsets.all(8),
-        child: Row(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  const Text(
-                    "Title",
-                  ),
-                  Text(
-                    book.Title!,
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.only(top: 15.0),
-                  ),
-                  const Text(
-                    "Author",
-                  ),
-                  Text(
-                    book.Author!,
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.only(top: 15.0),
-                  ),
-                ],
-              ),
-            ),
             FutureBuilder<epub.Image?>(
               future: cover,
               builder: (context, AsyncSnapshot<epub.Image?> snapshot) {
@@ -156,14 +116,14 @@ class _LibraryPageState extends State<LibraryPage> {
                       ),
                     ),
                     width: 120,
-                    height: 120,
+                    height: 160,
                   );
                 } else if (snapshot.hasError) {
                   return Text("${snapshot.error}");
                 }
                 return Container(
-                  width: 100,
-                  height: 120,
+                  width: 120,
+                  height: 160,
                   decoration: BoxDecoration(
                     border: Border.all(width: 1),
                   ),
@@ -178,56 +138,49 @@ class _LibraryPageState extends State<LibraryPage> {
                 );
               },
             ),
+            Text(
+              book.Title!,
+              textScaleFactor: 1.1,
+              overflow: TextOverflow.visible,
+            ),
           ],
         ));
   }
 
   Widget buildPdfWidget(cover, String path) {
     String fileName = path.split('/').last.split('.').first;
+    String isbn = path.split('/').last.split('.')[1];
     return Container(
         padding: const EdgeInsets.all(8),
-        child: Row(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  const Text(
-                    "Title",
+            Image.network(
+              'http://syndetics.com/index.aspx/?isbn=$isbn/LC.gif&client=iiit&type=hw7',
+              height: 160,
+              errorBuilder: (context, error, StackTrace? stackTrace) {
+                return Container(
+                  width: 100,
+                  height: 160,
+                  decoration: BoxDecoration(
+                    border: Border.all(width: 1),
                   ),
-                  Text(
-                    fileName,
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.only(top: 15.0),
-                  ),
-                  const Text(
-                    "Author",
-                  ),
-                  const Text(
-                    'Unknow',
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.only(top: 15.0),
-                  ),
-                ],
-              ),
+                  child: Padding(
+                      padding: const EdgeInsets.all(3),
+                      child: Center(
+                        child: Text(
+                          fileName,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      )),
+                );
+              },
             ),
-            Container(
-              width: 100,
-              height: 120,
-              decoration: BoxDecoration(
-                border: Border.all(width: 1),
-              ),
-              child: Padding(
-                  padding: const EdgeInsets.all(3),
-                  child: Center(
-                    child: Text(
-                      fileName,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  )),
-            )
+            Text(
+              fileName,
+              textScaleFactor: 1.1,
+              overflow: TextOverflow.visible,
+            ),
           ],
         ));
   }
@@ -253,43 +206,40 @@ class _LibraryPageState extends State<LibraryPage> {
         ),
       );
     } else {
-      return Container(
-        padding: const EdgeInsets.fromLTRB(0, 30, 0, 0),
-        child: Column(
-          children: <Widget>[
-            Expanded(
-              child: ScrollablePositionedList.builder(
-                padding: const EdgeInsets.all(16.0),
-                itemCount: files.length,
-                itemScrollController: itemScrollController,
-                itemPositionsListener: itemPositionsListener,
-                itemBuilder: (BuildContext context, int index) {
-                  return GestureDetector(
-                    onTap: () {
-                      launchReader(files[index]['path']);
-                    },
-                    child: isLoading
-                        ? Container()
-                        : Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: const BoxDecoration(
-                              border: Border(bottom: BorderSide(width: 1)),
-                            ),
-                            child: files[index]['type'] == 'epub'
-                                ? buildEpubWidget(
-                                    files[index]['ref'],
-                                  )
-                                : buildPdfWidget(
-                                    files[index]['doc'],
-                                    files[index]['path'],
-                                  ),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Expanded(
+            child: GridView.count(
+              controller: scrollController,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 3,
+              childAspectRatio: 100 / 160,
+              children: List.generate(files.length, (index) {
+                return GestureDetector(
+                  onTap: () {
+                    launchReader(files[index]['path']);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    child: files[index]['type'] == 'epub'
+                        ? buildEpubWidget(
+                            files[index]['ref'],
+                          )
+                        : buildPdfWidget(
+                            files[index]['doc'],
+                            files[index]['path'],
                           ),
-                  );
-                },
-              ),
+                  ),
+                );
+              }),
             ),
-          ],
-        ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text('Total book(s) ' + files.length.toString()),
+          )
+        ],
       );
     }
   }

@@ -59,11 +59,11 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
   final Battery _battery = Battery();
   late WebSocketChannel _channel;
+  String _newBook = '';
   String _androidId = '';
   String _shortName = '';
   String _availability = '';
   List<dynamic> _preDownloadList = [];
-  String targetPath = '/storage/emulated/0/Books';
 
   Future<void> initPlatformState() async {
     final AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
@@ -89,7 +89,9 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   void downloadRes(
     WebSocketChannel channel,
+    String title,
     String url,
+    String isbn,
     String username,
     String token,
   ) async {
@@ -97,46 +99,57 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       'event': 'download_res',
       'ereaderuid': _androidId,
       'username': username,
-      'url': url,
+      'title': title,
     };
+    showDownloadDialog(title.toString(), 'start');
     channel.sink.add(jsonEncode(res));
-    log('Downloaded: ' + await downloadFile(url, username, token, targetPath));
-    showDownloadDialog(targetPath.toString());
+    log('Downloaded: ' + await downloadFile(title, url, isbn, username, token));
+    showDownloadDialog(title.toString(), 'finish');
   }
 
-  void showDownloadDialog(String bookName) {
+  void showDownloadDialog(String bookName, String action) {
     showDialog(
-      context: navigatorKey.currentContext!,
-      builder: (context) => AlertDialog(
-        shape: Border.all(
-          color: Colors.black,
-        ),
-        title: Text(bookName),
-        content: const Text('Download Complete'),
-        actions: <Widget>[
-          TextButton(
-            style: ButtonStyle(
-              side: MaterialStateProperty.all(
-                  const BorderSide(width: 1, color: Colors.black)),
-              foregroundColor: MaterialStateProperty.all(Colors.black),
-              padding: MaterialStateProperty.all(
-                  const EdgeInsets.symmetric(vertical: 10, horizontal: 40)),
-              textStyle:
-                  MaterialStateProperty.all(const TextStyle(fontSize: 20)),
-            ),
-            onPressed: () {
-              Navigator.pop(context, 'Launch library');
-              _myPage.jumpToPage(1);
-              setState(() {
-                _selectedIndex = 1;
-              });
-            },
-            child: const Text('Launch library'),
-          ),
-        ],
-        actionsAlignment: MainAxisAlignment.center,
-      ),
-    );
+        context: navigatorKey.currentContext!,
+        builder: (context) => action == 'finish'
+            ? AlertDialog(
+                shape: Border.all(
+                  color: Colors.black,
+                ),
+                title: Text(bookName),
+                content: const Text('Download Complete'),
+                actions: <Widget>[
+                  TextButton(
+                    style: ButtonStyle(
+                      side: MaterialStateProperty.all(
+                          const BorderSide(width: 1, color: Colors.black)),
+                      foregroundColor: MaterialStateProperty.all(Colors.black),
+                      padding: MaterialStateProperty.all(
+                          const EdgeInsets.symmetric(
+                              vertical: 10, horizontal: 40)),
+                      textStyle: MaterialStateProperty.all(
+                          const TextStyle(fontSize: 20)),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context, 'Launch library');
+                      _myPage.jumpToPage(1);
+                      setState(() {
+                        _selectedIndex = 1;
+                        _newBook = 'found';
+                      });
+                    },
+                    child: const Text('Launch library'),
+                  ),
+                ],
+                actionsAlignment: MainAxisAlignment.center,
+              )
+            : SimpleDialog(
+                shape: Border.all(
+                  color: Colors.black,
+                ),
+                title: Text(bookName),
+                contentPadding: const EdgeInsets.all(8),
+                children: const <Widget>[Text('Downloading')],
+              ));
   }
 
   void wserror(err) async {
@@ -165,7 +178,14 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
             statusRes(_channel);
             break;
           case 'download':
-            downloadRes(_channel, data['url'], data['user'], data['token']);
+            downloadRes(
+              _channel,
+              data['title'],
+              data['url'],
+              data['isbn'],
+              data['user'],
+              data['token'],
+            );
             break;
           case 'short_name_res':
             setState(() {
@@ -177,15 +197,18 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
             setState(() {
               _preDownloadList = data['pre_download_list'];
             });
-            List urlToDownloadList = resetToDefault(_preDownloadList);
-            for (String urlToDownload in urlToDownloadList) {
-              downloadRes(
-                _channel,
-                urlToDownload,
-                data['user'] ?? 'adminEreader',
-                data['token'] ?? dotenv.env['TOKEN'].toString(),
-              );
-            }
+            List bookToDownloads = resetToDefault(_preDownloadList);
+            log(bookToDownloads.toString());
+            // for (Map<String, String> book in bookToDownloads) {
+            //   downloadRes(
+            //     _channel,
+            //     book['title']!,
+            //     book['url']!,
+            //     book['isbn']!,
+            //     data['user'] ?? 'adminEreader',
+            //     data['token'] ?? dotenv.env['TOKEN'].toString(),
+            //   );
+            // }
             break;
           default:
         }
@@ -227,7 +250,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       });
       statusRes(_channel);
       if (stateTemp != _availability) {
-        // _channel.sink.add(json.encode({'event': 'pre_download_req'}));
+        _channel.sink.add(json.encode({'event': 'pre_download_req'}));
         log('emit pre_download_req');
       }
     });
@@ -270,7 +293,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           controller: _myPage,
           children: <Widget>[
             const Center(child: HomePage()),
-            const Center(child: LibraryPage()),
+            Center(child: LibraryPage(newBook: _newBook)),
             Center(child: CloudDownloadPage(shortName: _shortName)),
             const Center(child: SettingPage()),
           ],

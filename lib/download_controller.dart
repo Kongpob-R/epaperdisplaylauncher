@@ -4,11 +4,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 Future<String> downloadFile(
+  String title,
   String url,
+  String isbn,
   String username,
   String token,
-  String dir,
 ) async {
+  String dir = '/storage/emulated/0/Books';
   String proxyHost = dotenv.env['PROXY_HOST'].toString();
   int proxyPort = int.parse(dotenv.env['PROXY_PORT'].toString());
   String proxyUser = dotenv.env['PROXY_USER'].toString();
@@ -18,7 +20,7 @@ Future<String> downloadFile(
   String filePath = '';
   String fullUrl = '';
   String hostUrl = dotenv.env['HOST_DOWNLOAD'].toString();
-  String fileName = url.split('/').last;
+  String fileName = title + '.' + isbn + '.' + url.split('.').last;
   String fileLocation = url.split('name=').last;
 
   try {

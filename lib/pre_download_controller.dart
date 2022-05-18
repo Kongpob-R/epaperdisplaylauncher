@@ -53,8 +53,12 @@ List resetToDefault(List<dynamic> preDownloadList) {
   urlToDownloadList = [];
   for (var book in preDownloadList) {
     if (preDownloadFileNameList
-        .any((fileName) => book['content'].toString().contains(fileName))) {
-      urlToDownloadList.add(book['content'].toString());
+        .any((fileName) => book['url'].toString().contains(fileName))) {
+      urlToDownloadList.add({
+        'title': book['title'],
+        'url': book['url'],
+        'isbn': book['isbn'],
+      });
     }
   }
   return urlToDownloadList;

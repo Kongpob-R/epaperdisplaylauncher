@@ -21,43 +21,24 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: <Widget>[
-            SizedBox(
-              width: 150,
-              height: 150,
-              child: Image.asset("assets/images/Logo_kmutnb.png"),
-            ),
-            SizedBox(
-              width: 150,
-              height: 150,
-              child: Image.asset("assets/images/Logo_EE.gif"),
-            ),
-          ],
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(0, 32.0, 0, 0),
+        Expanded(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
               SizedBox(
-                width: 150,
-                height: 150,
-                child: Image.asset("assets/images/Logo_lib_2016.png"),
+                width: 450,
+                height: 450,
+                child: Image.asset("assets/images/Logo_EE.gif"),
               ),
             ],
           ),
         ),
-        const Padding(
-          padding: EdgeInsets.fromLTRB(4, 128, 4, 4),
-          child: Text(
-            "This e-book reader belongs to Faculty of Engineering",
-            textAlign: TextAlign.center,
-            textScaleFactor: 1.2,
-          ),
+        const Text(
+          "This e-book reader belongs to Department of Electrical and \nComputer Engineering, Faculty of Engineering",
+          textAlign: TextAlign.center,
+          textScaleFactor: 1.2,
         ),
         const Padding(
           padding: EdgeInsets.fromLTRB(4, 4, 4, 32),
