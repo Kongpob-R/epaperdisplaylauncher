@@ -1,6 +1,5 @@
 import 'package:epaperdisplaylauncher/about_page.dart';
 import 'package:flutter/material.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:android_intent_plus/android_intent.dart';
 import 'package:android_intent_plus/flag.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -13,10 +12,6 @@ class SettingPage extends StatefulWidget {
 }
 
 class _SettingPageState extends State<SettingPage> {
-  final ItemScrollController itemScrollController = ItemScrollController();
-  final ItemPositionsListener itemPositionsListener =
-      ItemPositionsListener.create();
-
   late final List settings;
 
   @override
@@ -98,10 +93,8 @@ class _SettingPageState extends State<SettingPage> {
             ),
           ),
           Expanded(
-            child: ScrollablePositionedList.builder(
+            child: ListView.builder(
               itemCount: settings.length,
-              itemScrollController: itemScrollController,
-              itemPositionsListener: itemPositionsListener,
               itemBuilder: (BuildContext context, int index) {
                 return GestureDetector(
                   onTap: () {

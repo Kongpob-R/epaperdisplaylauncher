@@ -2,8 +2,6 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:typed_data';
 import 'package:epaperdisplaylauncher/loading_indicator.dart';
-import 'package:flutter/rendering.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/image.dart' as widgetImage;
 import 'package:epubx/epubx.dart' as epub;
@@ -140,8 +138,9 @@ class _LibraryPageState extends State<LibraryPage> {
             ),
             Text(
               book.Title!,
-              textScaleFactor: 1.1,
-              overflow: TextOverflow.visible,
+              textScaleFactor: 1,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 3,
             ),
           ],
         ));
@@ -158,6 +157,25 @@ class _LibraryPageState extends State<LibraryPage> {
             Image.network(
               'http://syndetics.com/index.aspx/?isbn=$isbn/LC.gif&client=iiit&type=hw7',
               height: 160,
+              loadingBuilder:
+                  (context, Widget child, ImageChunkEvent? loadingProgress) {
+                return Container(
+                  width: 100,
+                  height: 160,
+                  decoration: BoxDecoration(
+                    border: Border.all(width: 1),
+                  ),
+                  child: Padding(
+                      padding: const EdgeInsets.all(3),
+                      child: Center(
+                        child: Text(
+                          fileName,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 3,
+                        ),
+                      )),
+                );
+              },
               errorBuilder: (context, error, StackTrace? stackTrace) {
                 return Container(
                   width: 100,
@@ -171,6 +189,7 @@ class _LibraryPageState extends State<LibraryPage> {
                         child: Text(
                           fileName,
                           overflow: TextOverflow.ellipsis,
+                          maxLines: 3,
                         ),
                       )),
                 );
@@ -178,8 +197,9 @@ class _LibraryPageState extends State<LibraryPage> {
             ),
             Text(
               fileName,
-              textScaleFactor: 1.1,
-              overflow: TextOverflow.visible,
+              textScaleFactor: 1,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 3,
             ),
           ],
         ));
@@ -214,7 +234,7 @@ class _LibraryPageState extends State<LibraryPage> {
               controller: scrollController,
               physics: const NeverScrollableScrollPhysics(),
               crossAxisCount: 3,
-              childAspectRatio: 100 / 160,
+              childAspectRatio: 100 / 170,
               children: List.generate(files.length, (index) {
                 return GestureDetector(
                   onTap: () {

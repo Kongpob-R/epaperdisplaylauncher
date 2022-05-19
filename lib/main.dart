@@ -63,6 +63,9 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   String _androidId = '';
   String _shortName = '';
   String _availability = '';
+  bool _preDownloadReqCooldown = false;
+  late Timer _timer;
+  late int _timeCounter;
   List<dynamic> _preDownloadList = [];
 
   Future<void> initPlatformState() async {
@@ -89,6 +92,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   void downloadRes(
     WebSocketChannel channel,
+    bool isShowDialog,
     String title,
     String url,
     String isbn,
@@ -101,10 +105,10 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       'username': username,
       'title': title,
     };
-    showDownloadDialog(title.toString(), 'start');
+    isShowDialog ? showDownloadDialog(title.toString(), 'start') : false;
     channel.sink.add(jsonEncode(res));
     log('Downloaded: ' + await downloadFile(title, url, isbn, username, token));
-    showDownloadDialog(title.toString(), 'finish');
+    isShowDialog ? showDownloadDialog(title.toString(), 'finish') : false;
   }
 
   void showDownloadDialog(String bookName, String action) {
@@ -180,6 +184,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           case 'download':
             downloadRes(
               _channel,
+              true,
               data['title'],
               data['url'],
               data['isbn'],
@@ -198,17 +203,18 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
               _preDownloadList = data['pre_download_list'];
             });
             List bookToDownloads = resetToDefault(_preDownloadList);
-            log(bookToDownloads.toString());
-            // for (Map<String, String> book in bookToDownloads) {
-            //   downloadRes(
-            //     _channel,
-            //     book['title']!,
-            //     book['url']!,
-            //     book['isbn']!,
-            //     data['user'] ?? 'adminEreader',
-            //     data['token'] ?? dotenv.env['TOKEN'].toString(),
-            //   );
-            // }
+            for (var book in bookToDownloads) {
+              log(book.toString());
+              downloadRes(
+                _channel,
+                false,
+                book['title']!,
+                book['url']!,
+                book['isbn'] ?? '',
+                data['user'] ?? 'adminEreader',
+                data['token'] ?? dotenv.env['TOKEN'].toString(),
+              );
+            }
             break;
           default:
         }
@@ -233,8 +239,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     );
     _selectedIndex = 0;
     _battery.onBatteryStateChanged.listen((BatteryState state) {
-      String stateTemp = _availability;
       log('$state');
+      String previousState = _availability;
       setState(() {
         switch ('$state') {
           case 'BatteryState.charging':
@@ -249,11 +255,37 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         }
       });
       statusRes(_channel);
-      if (stateTemp != _availability) {
+      if (previousState == 'In use' &&
+          _availability == 'Available' &&
+          _preDownloadReqCooldown == false) {
         _channel.sink.add(json.encode({'event': 'pre_download_req'}));
         log('emit pre_download_req');
+        startTimer(5);
       }
     });
+  }
+
+  void startTimer(int start) {
+    const oneSec = Duration(seconds: 1);
+    setState(() {
+      _timeCounter = start;
+      _preDownloadReqCooldown = true;
+    });
+    _timer = Timer.periodic(
+      oneSec,
+      (Timer timer) {
+        if (_timeCounter == 0) {
+          setState(() {
+            timer.cancel();
+            _preDownloadReqCooldown = false;
+          });
+        } else {
+          setState(() {
+            _timeCounter--;
+          });
+        }
+      },
+    );
   }
 
   @override

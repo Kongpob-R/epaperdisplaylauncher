@@ -7,7 +7,9 @@ List resetToDefault(List<dynamic> preDownloadList) {
   const List<String> subDirectories = ['Books'];
   List localFileList = [];
   List<String> localFileNameList = [];
+  List<String> temp = [];
   List<String> preDownloadFileNameList = [];
+  List<String> fileNameToDownload = [];
   late List urlToDownloadList;
   for (var subDirectory in subDirectories) {
     final targetPath = io.Directory(path.join(
@@ -31,20 +33,28 @@ List resetToDefault(List<dynamic> preDownloadList) {
   log('local: ' + localFileNameList.toString());
 
   for (var book in preDownloadList) {
-    preDownloadFileNameList.add(book['content'].toString().split('/').last);
+    preDownloadFileNameList.add(book['title'] +
+        '.' +
+        (book['isbn'] ?? '') +
+        '.' +
+        book['url'].split('.').last);
   }
   log('preDownload: ' + preDownloadFileNameList.toString());
 
+  temp = localFileNameList;
   localFileNameList
       .removeWhere((fileName) => preDownloadFileNameList.contains(fileName));
   log('files to remove: ' + localFileNameList.toString());
 
-  preDownloadFileNameList
-      .removeWhere((fileName) => localFileNameList.contains(fileName));
-  log('files to download: ' + preDownloadFileNameList.toString());
+  for (var element in preDownloadFileNameList) {
+    if (!temp.contains(element)) {
+      fileNameToDownload.add(element);
+    }
+  }
+  log('files to download: ' + fileNameToDownload.toString());
 
   for (var file in localFileList) {
-    if (localFileNameList.any((fileName) => file.path.contains(fileName))) {
+    if (temp.any((fileName) => file.path.contains(fileName))) {
       deleteFile(io.File(file.path));
       log('removed: ' + file.path);
     }
@@ -52,8 +62,7 @@ List resetToDefault(List<dynamic> preDownloadList) {
 
   urlToDownloadList = [];
   for (var book in preDownloadList) {
-    if (preDownloadFileNameList
-        .any((fileName) => book['url'].toString().contains(fileName))) {
+    if (fileNameToDownload.contains(book['title'])) {
       urlToDownloadList.add({
         'title': book['title'],
         'url': book['url'],
