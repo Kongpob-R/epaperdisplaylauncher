@@ -7,7 +7,6 @@ List resetToDefault(List<dynamic> preDownloadList) {
   const List<String> subDirectories = ['Books'];
   List localFileList = [];
   List<String> localFileNameList = [];
-  List<String> temp = [];
   List<String> preDownloadFileNameList = [];
   List<String> fileNameToDownload = [];
   late List urlToDownloadList;
@@ -41,20 +40,19 @@ List resetToDefault(List<dynamic> preDownloadList) {
   }
   log('preDownload: ' + preDownloadFileNameList.toString());
 
-  temp = localFileNameList;
-  localFileNameList
-      .removeWhere((fileName) => preDownloadFileNameList.contains(fileName));
-  log('files to remove: ' + localFileNameList.toString());
-
   for (var element in preDownloadFileNameList) {
-    if (!temp.contains(element)) {
+    if (!localFileNameList.contains(element)) {
       fileNameToDownload.add(element);
     }
   }
   log('files to download: ' + fileNameToDownload.toString());
 
+  localFileNameList
+      .removeWhere((fileName) => preDownloadFileNameList.contains(fileName));
+  log('files to remove: ' + localFileNameList.toString());
+
   for (var file in localFileList) {
-    if (temp.any((fileName) => file.path.contains(fileName))) {
+    if (localFileNameList.any((fileName) => file.path.contains(fileName))) {
       deleteFile(io.File(file.path));
       log('removed: ' + file.path);
     }
@@ -62,7 +60,12 @@ List resetToDefault(List<dynamic> preDownloadList) {
 
   urlToDownloadList = [];
   for (var book in preDownloadList) {
-    if (fileNameToDownload.contains(book['title'])) {
+    String bookName = book['title'] +
+        '.' +
+        (book['isbn'] ?? '') +
+        '.' +
+        book['url'].split('.').last;
+    if (fileNameToDownload.contains(bookName)) {
       urlToDownloadList.add({
         'title': book['title'],
         'url': book['url'],

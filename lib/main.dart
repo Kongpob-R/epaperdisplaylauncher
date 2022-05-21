@@ -105,6 +105,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       'username': username,
       'title': title,
     };
+    log('Start download: ' + title.toString());
     isShowDialog ? showDownloadDialog(title.toString(), 'start') : false;
     channel.sink.add(jsonEncode(res));
     log('Downloaded: ' + await downloadFile(title, url, isbn, username, token));
@@ -182,15 +183,17 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
             statusRes(_channel);
             break;
           case 'download':
-            downloadRes(
-              _channel,
-              true,
-              data['title'],
-              data['url'],
-              data['isbn'],
-              data['user'],
-              data['token'],
-            );
+            if (data['ereaderuid'] == _androidId) {
+              downloadRes(
+                _channel,
+                true,
+                data['title'],
+                data['url'],
+                data['isbn'],
+                data['user'],
+                data['token'],
+              );
+            }
             break;
           case 'short_name_res':
             setState(() {
@@ -204,7 +207,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
             });
             List bookToDownloads = resetToDefault(_preDownloadList);
             for (var book in bookToDownloads) {
-              log(book.toString());
               downloadRes(
                 _channel,
                 false,

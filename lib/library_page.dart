@@ -55,7 +55,6 @@ class _LibraryPageState extends State<LibraryPage> {
       }
     }
     for (var book in bookPaths) {
-      log(book.path);
       if (book.path.contains('.epub')) {
         final epub.EpubBookRef epubBookRef = await epub.EpubReader.openBook(
           io.File(book.path).readAsBytes(),
@@ -119,21 +118,7 @@ class _LibraryPageState extends State<LibraryPage> {
                 } else if (snapshot.hasError) {
                   return Text("${snapshot.error}");
                 }
-                return Container(
-                  width: 120,
-                  height: 160,
-                  decoration: BoxDecoration(
-                    border: Border.all(width: 1),
-                  ),
-                  child: Padding(
-                      padding: const EdgeInsets.all(3),
-                      child: Center(
-                        child: Text(
-                          book.Title!,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      )),
-                );
+                return PlaceHolderCover(book.Title!);
               },
             ),
             Text(
@@ -154,47 +139,19 @@ class _LibraryPageState extends State<LibraryPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            Image.network(
-              'http://syndetics.com/index.aspx/?isbn=$isbn/LC.gif&client=iiit&type=hw7',
-              height: 160,
-              loadingBuilder:
-                  (context, Widget child, ImageChunkEvent? loadingProgress) {
-                return Container(
-                  width: 100,
-                  height: 160,
-                  decoration: BoxDecoration(
-                    border: Border.all(width: 1),
-                  ),
-                  child: Padding(
-                      padding: const EdgeInsets.all(3),
-                      child: Center(
-                        child: Text(
-                          fileName,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 3,
-                        ),
-                      )),
-                );
-              },
-              errorBuilder: (context, error, StackTrace? stackTrace) {
-                return Container(
-                  width: 100,
-                  height: 160,
-                  decoration: BoxDecoration(
-                    border: Border.all(width: 1),
-                  ),
-                  child: Padding(
-                      padding: const EdgeInsets.all(3),
-                      child: Center(
-                        child: Text(
-                          fileName,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 3,
-                        ),
-                      )),
-                );
-              },
-            ),
+            isbn.isNotEmpty
+                ? Image.network(
+                    'http://syndetics.com/index.aspx/?isbn=$isbn/LC.gif&client=iiit&type=hw7',
+                    height: 160,
+                    loadingBuilder: (context, Widget child,
+                        ImageChunkEvent? loadingProgress) {
+                      return PlaceHolderCover(fileName);
+                    },
+                    errorBuilder: (context, error, StackTrace? stackTrace) {
+                      return PlaceHolderCover(fileName);
+                    },
+                  )
+                : PlaceHolderCover(fileName),
             Text(
               fileName,
               textScaleFactor: 1,
@@ -262,5 +219,25 @@ class _LibraryPageState extends State<LibraryPage> {
         ],
       );
     }
+  }
+
+  Widget PlaceHolderCover(String displayText) {
+    return Container(
+      width: 100,
+      height: 160,
+      decoration: BoxDecoration(
+        border: Border.all(width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(3),
+        child: Center(
+          child: Text(
+            displayText,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 4,
+          ),
+        ),
+      ),
+    );
   }
 }
