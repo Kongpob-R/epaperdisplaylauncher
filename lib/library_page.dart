@@ -145,6 +145,9 @@ class _LibraryPageState extends State<LibraryPage> {
                     height: 160,
                     loadingBuilder: (context, Widget child,
                         ImageChunkEvent? loadingProgress) {
+                      if (loadingProgress == null) {
+                        return child;
+                      }
                       return PlaceHolderCover(fileName);
                     },
                     errorBuilder: (context, error, StackTrace? stackTrace) {
