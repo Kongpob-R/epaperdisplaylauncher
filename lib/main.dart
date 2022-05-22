@@ -74,7 +74,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     if (!mounted) return;
 
     setState(() {
-      _androidId = androidInfo.id.toString();
+      _androidId = androidInfo.androidId.toString();
       log(_androidId);
     });
   }
