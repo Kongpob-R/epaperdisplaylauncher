@@ -26,7 +26,8 @@ class _LibraryPageState extends State<LibraryPage> {
   late String filePath;
   String rootDirectory = '/storage/emulated/0';
   List files = [];
-  final ScrollController scrollController = ScrollController();
+  List<int> pageOffset = [];
+  int pageOffsetIndex = 0;
   List pageFiles = [];
 
   void launchReader(String filePath) async {
@@ -84,6 +85,7 @@ class _LibraryPageState extends State<LibraryPage> {
     _listBooksProcess = _listBooks(['Books']).asStream().listen((data) {
       setState(() {
         files = data;
+        pageOffset = [for (int i = 0; i <= files.length; i += 6) i];
         isLoading = false;
       });
     });
@@ -93,6 +95,26 @@ class _LibraryPageState extends State<LibraryPage> {
   void dispose() {
     _listBooksProcess.cancel();
     super.dispose();
+  }
+
+  Widget placeHolderCover(String displayText) {
+    return Container(
+      width: 100,
+      height: 160,
+      decoration: BoxDecoration(
+        border: Border.all(width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(3),
+        child: Center(
+          child: Text(
+            displayText,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 4,
+          ),
+        ),
+      ),
+    );
   }
 
   Widget buildEpubWidget(epub.EpubBookRef book) {
@@ -118,7 +140,7 @@ class _LibraryPageState extends State<LibraryPage> {
                 } else if (snapshot.hasError) {
                   return Text("${snapshot.error}");
                 }
-                return PlaceHolderCover(book.Title!);
+                return placeHolderCover(book.Title!);
               },
             ),
             Text(
@@ -148,13 +170,13 @@ class _LibraryPageState extends State<LibraryPage> {
                       if (loadingProgress == null) {
                         return child;
                       }
-                      return PlaceHolderCover(fileName);
+                      return placeHolderCover(fileName);
                     },
                     errorBuilder: (context, error, StackTrace? stackTrace) {
-                      return PlaceHolderCover(fileName);
+                      return placeHolderCover(fileName);
                     },
                   )
-                : PlaceHolderCover(fileName),
+                : placeHolderCover(fileName),
             Text(
               fileName,
               textScaleFactor: 1,
@@ -186,33 +208,64 @@ class _LibraryPageState extends State<LibraryPage> {
         ),
       );
     } else {
+      String? swipeDirection;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Expanded(
-            child: GridView.count(
-              controller: scrollController,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 3,
-              childAspectRatio: 100 / 170,
-              children: List.generate(files.length, (index) {
-                return GestureDetector(
-                  onTap: () {
-                    launchReader(files[index]['path']);
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    child: files[index]['type'] == 'epub'
-                        ? buildEpubWidget(
-                            files[index]['ref'],
-                          )
-                        : buildPdfWidget(
-                            files[index]['doc'],
-                            files[index]['path'],
-                          ),
-                  ),
-                );
-              }),
+            child: GestureDetector(
+              onPanUpdate: (details) {
+                swipeDirection = details.delta.dx < 0 ? 'left' : 'right';
+              },
+              onPanEnd: (details) {
+                if (swipeDirection == null) {
+                  return;
+                }
+                if (swipeDirection == 'left') {
+                  //handle swipe left event
+                  log('left');
+                  setState(() {
+                    if (pageOffset[pageOffsetIndex] < files.length - 1) {
+                      pageOffsetIndex++;
+                    }
+                  });
+                }
+                if (swipeDirection == 'right') {
+                  //handle swipe right event
+                  log('right');
+                  setState(() {
+                    pageOffsetIndex--;
+                    if (pageOffsetIndex < 0) pageOffsetIndex = 0;
+                  });
+                }
+              },
+              child: GridView.count(
+                crossAxisCount: 3,
+                childAspectRatio: 100 / 170,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  for (var index = 0 + pageOffset[pageOffsetIndex];
+                      index < 6 + pageOffset[pageOffsetIndex];
+                      index++)
+                    if (index < files.length)
+                      GestureDetector(
+                        onTap: () {
+                          launchReader(files[index]['path']);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          child: files[index]['type'] == 'epub'
+                              ? buildEpubWidget(
+                                  files[index]['ref'],
+                                )
+                              : buildPdfWidget(
+                                  files[index]['doc'],
+                                  files[index]['path'],
+                                ),
+                        ),
+                      )
+                ],
+              ),
             ),
           ),
           Padding(
@@ -222,25 +275,5 @@ class _LibraryPageState extends State<LibraryPage> {
         ],
       );
     }
-  }
-
-  Widget PlaceHolderCover(String displayText) {
-    return Container(
-      width: 100,
-      height: 160,
-      decoration: BoxDecoration(
-        border: Border.all(width: 1),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(3),
-        child: Center(
-          child: Text(
-            displayText,
-            overflow: TextOverflow.ellipsis,
-            maxLines: 4,
-          ),
-        ),
-      ),
-    );
   }
 }
