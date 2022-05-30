@@ -114,6 +114,9 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   }
 
   void showDownloadDialog(String bookName, String action) {
+    if (navigatorKey.currentState!.canPop()) {
+      navigatorKey.currentState!.pop();
+    }
     showDialog(
         context: navigatorKey.currentContext!,
         builder: (context) => action == 'finish'
