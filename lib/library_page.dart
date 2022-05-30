@@ -13,14 +13,13 @@ import 'package:android_intent_plus/flag.dart';
 // import 'package:path_provider/path_provider.dart';
 
 class LibraryPage extends StatefulWidget {
-  final String newBook;
-  const LibraryPage({Key? key, required this.newBook}) : super(key: key);
+  const LibraryPage({Key? key}) : super(key: key);
 
   @override
-  State<LibraryPage> createState() => _LibraryPageState();
+  State<LibraryPage> createState() => LibraryPageState();
 }
 
-class _LibraryPageState extends State<LibraryPage> {
+class LibraryPageState extends State<LibraryPage> {
   late bool isLoading;
   late StreamSubscription<List> _listBooksProcess;
   late String filePath;
@@ -76,19 +75,41 @@ class _LibraryPageState extends State<LibraryPage> {
     return bookRefs;
   }
 
-  @override
-  void initState() {
-    super.initState();
+  StreamSubscription<List> fetchBooks() {
     setState(() {
       isLoading = true;
     });
-    _listBooksProcess = _listBooks(['Books']).asStream().listen((data) {
+    return _listBooks(['Books']).asStream().listen((data) {
       setState(() {
         files = data;
         pageOffset = [for (int i = 0; i <= files.length; i += 6) i];
         isLoading = false;
       });
     });
+  }
+
+  void jumpToPageWtihNewBook(String newBookTitle) async {
+    _listBooksProcess = fetchBooks();
+    await Future.wait([_listBooksProcess.asFuture()]);
+    int indexOfNewBookTitle =
+        files.indexWhere((element) => element['path'].contains(newBookTitle));
+    log(indexOfNewBookTitle.toString());
+    setState(() {
+      pageOffsetIndex = 0;
+    });
+    for (int i = 6; i < indexOfNewBookTitle; i += 6) {
+      setState(() {
+        if (pageOffset[pageOffsetIndex] < files.length - 1) {
+          pageOffsetIndex++;
+        }
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _listBooksProcess = fetchBooks();
   }
 
   @override

@@ -54,6 +54,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   final navigatorKey = GlobalKey<NavigatorState>();
+  GlobalKey<LibraryPageState> globalKey = GlobalKey();
   late int _selectedIndex;
   late PageController _myPage;
   final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
@@ -139,8 +140,12 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                       _myPage.jumpToPage(1);
                       setState(() {
                         _selectedIndex = 1;
-                        _newBook = 'found';
                       });
+                      Future.delayed(
+                        const Duration(milliseconds: 100),
+                        () => globalKey.currentState!
+                            .jumpToPageWtihNewBook(bookName),
+                      );
                     },
                     child: const Text('Launch library'),
                   ),
@@ -318,7 +323,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    log('build MyhomePage');
     return MaterialApp(
       navigatorKey: navigatorKey,
       home: Scaffold(
@@ -327,7 +331,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           controller: _myPage,
           children: <Widget>[
             const Center(child: HomePage()),
-            Center(child: LibraryPage(newBook: _newBook)),
+            Center(child: LibraryPage(key: globalKey)),
             Center(child: CloudDownloadPage(shortName: _shortName)),
             const Center(child: SettingPage()),
           ],
