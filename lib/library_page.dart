@@ -99,7 +99,7 @@ class LibraryPageState extends State<LibraryPage> {
     });
     for (int i = 6; i < indexOfNewBookTitle; i += 6) {
       setState(() {
-        if (pageOffset[pageOffsetIndex] < files.length - 1) {
+        if (pageOffset[pageOffsetIndex] < pageOffset.length) {
           pageOffsetIndex++;
         }
       });
@@ -246,7 +246,7 @@ class LibraryPageState extends State<LibraryPage> {
                   //handle swipe left event
                   log('left');
                   setState(() {
-                    if (pageOffset[pageOffsetIndex] < files.length - 1) {
+                    if (pageOffset[pageOffsetIndex] < pageOffset.length) {
                       pageOffsetIndex++;
                     }
                   });
