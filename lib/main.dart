@@ -183,7 +183,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       log(DateTime.now().toString() + " Connection attempt completed.");
     });
     _channel.stream.listen(
-      (data) {
+      (data) async {
         data = jsonDecode(data);
         log('from stream: ' + data.toString());
         switch (data['event']) {
@@ -225,6 +225,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                 data['token'] ?? dotenv.env['TOKEN'].toString(),
               );
             }
+            await Future.delayed(const Duration(seconds: 1));
+            globalKey.currentState?.jumpToPageWtihNewBook(_newBook);
             break;
           default:
         }
@@ -412,6 +414,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           ),
         ),
       ),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
