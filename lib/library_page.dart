@@ -99,7 +99,7 @@ class LibraryPageState extends State<LibraryPage> {
     });
     for (int i = 6; i < indexOfNewBookTitle; i += 6) {
       setState(() {
-        if (pageOffset[pageOffsetIndex] < pageOffset.length) {
+        if (pageOffsetIndex < pageOffset.length) {
           pageOffsetIndex++;
         }
       });
@@ -168,7 +168,7 @@ class LibraryPageState extends State<LibraryPage> {
               book.Title!,
               textScaleFactor: 1,
               overflow: TextOverflow.ellipsis,
-              maxLines: 3,
+              maxLines: 4,
             ),
           ],
         ));
@@ -202,7 +202,7 @@ class LibraryPageState extends State<LibraryPage> {
               fileName,
               textScaleFactor: 1,
               overflow: TextOverflow.ellipsis,
-              maxLines: 3,
+              maxLines: 4,
             ),
           ],
         ));
@@ -230,70 +230,102 @@ class LibraryPageState extends State<LibraryPage> {
       );
     } else {
       String? swipeDirection;
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Expanded(
-            child: GestureDetector(
-              onPanUpdate: (details) {
-                swipeDirection = details.delta.dx < 0 ? 'left' : 'right';
-              },
-              onPanEnd: (details) {
-                if (swipeDirection == null) {
-                  return;
-                }
-                if (swipeDirection == 'left') {
-                  //handle swipe left event
-                  log('left');
-                  setState(() {
-                    if (pageOffset[pageOffsetIndex] < pageOffset.length) {
-                      pageOffsetIndex++;
-                    }
-                  });
-                }
-                if (swipeDirection == 'right') {
-                  //handle swipe right event
-                  log('right');
-                  setState(() {
-                    pageOffsetIndex--;
-                    if (pageOffsetIndex < 0) pageOffsetIndex = 0;
-                  });
-                }
-              },
-              child: GridView.count(
-                crossAxisCount: 3,
-                childAspectRatio: 100 / 170,
-                physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  for (var index = 0 + pageOffset[pageOffsetIndex];
-                      index < 6 + pageOffset[pageOffsetIndex];
-                      index++)
-                    if (index < files.length)
-                      GestureDetector(
-                        onTap: () {
-                          launchReader(files[index]['path']);
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(10),
-                          child: files[index]['type'] == 'epub'
-                              ? buildEpubWidget(
-                                  files[index]['ref'],
-                                )
-                              : buildPdfWidget(
-                                  files[index]['doc'],
-                                  files[index]['path'],
-                                ),
-                        ),
-                      )
-                ],
+      return SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
+              child: Text('Total book(s) ' + files.length.toString()),
+            ),
+            Expanded(
+              child: GestureDetector(
+                onPanUpdate: (details) {
+                  swipeDirection = details.delta.dx < 0 ? 'left' : 'right';
+                },
+                onPanEnd: (details) {
+                  if (swipeDirection == null) {
+                    return;
+                  }
+                  if (swipeDirection == 'left') {
+                    //handle swipe left event
+                    log('left');
+                    setState(() {
+                      if (pageOffsetIndex < pageOffset.length) {
+                        pageOffsetIndex++;
+                      }
+                    });
+                  }
+                  if (swipeDirection == 'right') {
+                    //handle swipe right event
+                    log('right');
+                    setState(() {
+                      pageOffsetIndex--;
+                      if (pageOffsetIndex < 0) pageOffsetIndex = 0;
+                    });
+                  }
+                },
+                child: GridView.count(
+                  crossAxisCount: 3,
+                  childAspectRatio: 100 / 155,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [
+                    for (var index = 0 + pageOffset[pageOffsetIndex];
+                        index < 6 + pageOffset[pageOffsetIndex];
+                        index++)
+                      if (index < files.length)
+                        GestureDetector(
+                          onTap: () {
+                            launchReader(files[index]['path']);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            child: files[index]['type'] == 'epub'
+                                ? buildEpubWidget(
+                                    files[index]['ref'],
+                                  )
+                                : buildPdfWidget(
+                                    files[index]['doc'],
+                                    files[index]['path'],
+                                  ),
+                          ),
+                        )
+                  ],
+                ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text('Total book(s) ' + files.length.toString()),
-          )
-        ],
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: pageOffsetIndex != 0
+                      ? const Icon(Icons.arrow_back)
+                      : const Icon(
+                          Icons.arrow_back,
+                          color: Colors.transparent,
+                        ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text('Page(s) ' +
+                      (pageOffsetIndex + 1).toString() +
+                      '/' +
+                      pageOffset.length.toString()),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: pageOffsetIndex + 1 != pageOffset.length
+                      ? const Icon(Icons.arrow_forward)
+                      : const Icon(
+                          Icons.arrow_back,
+                          color: Colors.transparent,
+                        ),
+                ),
+              ],
+            )
+          ],
+        ),
       );
     }
   }
