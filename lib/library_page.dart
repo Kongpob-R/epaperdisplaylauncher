@@ -251,7 +251,7 @@ class LibraryPageState extends State<LibraryPage> {
                     //handle swipe left event
                     log('left');
                     setState(() {
-                      if (pageOffsetIndex < pageOffset.length) {
+                      if (pageOffsetIndex + 1 < pageOffset.length) {
                         pageOffsetIndex++;
                       }
                     });
